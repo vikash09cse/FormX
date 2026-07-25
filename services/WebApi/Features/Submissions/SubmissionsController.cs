@@ -27,8 +27,9 @@ public class SubmissionsController(SubmissionsService service) : ControllerBase
         [FromQuery] Guid formId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
+        [FromQuery] string? search = null,
         CancellationToken ct = default) =>
-        (await service.GetMyListAsync(formId, page, pageSize, ct)).ToActionResult();
+        (await service.GetMyListAsync(formId, page, pageSize, search, ct)).ToActionResult();
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct) =>

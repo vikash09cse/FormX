@@ -1,3 +1,9 @@
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
+-- Add @search filter to my-submissions list (project name + display-on-list values).
+
 CREATE OR ALTER PROCEDURE dbo.sp_submission_get_list_mine
     @tenantid  UNIQUEIDENTIFIER,
     @userid    UNIQUEIDENTIFIER,

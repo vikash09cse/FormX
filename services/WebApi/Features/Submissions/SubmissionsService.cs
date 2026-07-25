@@ -70,7 +70,8 @@ public class SubmissionsService(
             form.FormId, form.Name, form.Description, form.ProjectId, form.ProjectName, groupDtos));
     }
 
-    public async Task<Result<SubmissionListPageResponse>> GetMyListAsync(Guid formId, int page, int pageSize, CancellationToken ct)
+    public async Task<Result<SubmissionListPageResponse>> GetMyListAsync(
+        Guid formId, int page, int pageSize, string? search, CancellationToken ct)
     {
         var err = RequireTenant<SubmissionListPageResponse>();
         if (err != null) return err;
@@ -82,8 +83,12 @@ public class SubmissionsService(
         if (pageSize < 1) pageSize = 25;
         if (pageSize > 100) pageSize = 100;
 
+        search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+        if (search is { Length: > 100 })
+            search = search[..100];
+
         var (total, columns, items, values) = await repository.GetMySubmissionsPageAsync(
-            TenantId, UserId, formId, page, pageSize, ct);
+            TenantId, UserId, formId, page, pageSize, search, ct);
 
         var valuesBySubmission = values
             .GroupBy(v => v.SubmissionId)
