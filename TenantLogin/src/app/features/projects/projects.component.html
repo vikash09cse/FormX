@@ -1,0 +1,75 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Projects</h1>
+      <p class="subtitle">Tenant project master used on forms and leader scopes.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openCreate()">Add project</button>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading projects…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No projects yet. <button type="button" class="btn-text" (click)="openCreate()">Add the first project</button></div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Code</th><th>Status</th><th class="actions-col">Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (p of items(); track p.id) {
+          <tr>
+            <td data-label="Name">{{ p.projectName }}</td>
+            <td data-label="Code">{{ p.code || '—' }}</td>
+            <td data-label="Status"><span class="badge" [class.active]="p.statusCode === 1">{{ p.status }}</span></td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(p)">✎</button>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(p)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>{{ isEditing() ? 'Edit project' : 'Add project' }}</h2>
+        <button type="button" class="drawer-close" (click)="closeDrawer()" aria-label="Close">×</button>
+      </header>
+      @if (formError()) { <div class="error">{{ formError() }}</div> }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>Project name<input [(ngModel)]="projectName" name="projectName" required maxlength="200" /></label>
+        <label>Code<input [(ngModel)]="code" name="code" maxlength="50" /></label>
+        <label>Status
+          <select [(ngModel)]="statusCode" name="statusCode">
+            <option [ngValue]="1">Active</option>
+            <option [ngValue]="2">Inactive</option>
+          </select>
+        </label>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!confirmTarget()"
+  title="Delete project"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

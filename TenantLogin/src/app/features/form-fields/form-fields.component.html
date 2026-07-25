@@ -1,0 +1,108 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Form Fields</h1>
+      <p class="subtitle">Fields for the selected form</p>
+    </div>
+    <a
+      class="btn-primary"
+      [routerLink]="['/form-fields/new']"
+      [queryParams]="{ formId: selectedFormId }"
+      [class.disabled]="!selectedFormId || groups().length === 0"
+    >
+      Add new field
+    </a>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading forms…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (forms().length === 0) {
+  <div class="empty">Create a form first under Forms, then add fields here.</div>
+} @else {
+  <div class="toolbar">
+    <label class="form-picker">
+      Form
+      <select
+        name="selectedFormId"
+        [(ngModel)]="selectedFormId"
+        (ngModelChange)="onFormChange()"
+      >
+        @for (f of forms(); track f.id) {
+          <option [ngValue]="f.id">{{ f.name }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (groups().length === 0) {
+    <div class="empty">
+      This form has no groups yet.
+      <a routerLink="/form-groups" class="btn-text">Create a form group</a>
+    </div>
+  } @else if (fieldsLoading()) {
+    <p class="status">Loading fields…</p>
+  } @else if (fields().length === 0) {
+    <div class="empty">
+      No fields for this form yet.
+      <a
+        class="btn-text"
+        [routerLink]="['/form-fields/new']"
+        [queryParams]="{ formId: selectedFormId }"
+      >
+        Add the first field
+      </a>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Group</th>
+            <th>Required</th>
+            <th>Order</th>
+            <th>Parent</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of fields(); track f.id) {
+            <tr>
+              <td data-label="Label">{{ f.controlLabel }}</td>
+              <td data-label="Type">{{ f.controlTypeName }}</td>
+              <td data-label="Group">{{ groupName(f.formGroupId) }}</td>
+              <td data-label="Required">{{ f.controlRequired ? 'Yes' : 'No' }}</td>
+              <td data-label="Order">{{ f.displayOrder }}</td>
+              <td data-label="Parent">{{ f.parentFieldId ? 'Conditional' : '—' }}</td>
+              <td data-label="Actions" class="actions-cell">
+                <div class="row-actions">
+                  <a
+                    class="icon-btn icon-btn-edit"
+                    title="Edit"
+                    [routerLink]="['/form-fields', f.id, 'edit']"
+                    [queryParams]="{ formId: selectedFormId }"
+                  >✎</a>
+                  <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(f)">🗑</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete field?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

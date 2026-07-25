@@ -1,0 +1,23 @@
+*.rsuser
+*.suo
+*.user
+.vs/
+[Ll]og/
+
+# .NET build output
+**/bin/
+**/obj/
+**/packages/
+
+# Node / Angular
+**/node_modules/
+dist/
+.angular/
+
+.env
+appsettings.*.local.json
+
+# Local secrets (use *.example.json as templates)
+**/appsettings.json
+!**/appsettings.Development.json
+

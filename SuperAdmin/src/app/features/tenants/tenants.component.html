@@ -1,0 +1,79 @@
+<div class="header">
+  <h1>Tenant Management</h1>
+  <button (click)="openCreate()">Create Tenant</button>
+</div>
+
+@if (message()) { <div class="msg">{{ message() }}</div> }
+
+<table>
+  <thead>
+    <tr>
+      <th>Company</th><th>Subdomain</th><th>Status</th><th>Users</th><th>Created</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (t of tenants(); track t.id) {
+      <tr>
+        <td>{{ t.hospitalName }}</td>
+        <td>{{ t.subdomain }}</td>
+        <td><span [class]="t.statusCode === 1 ? 'badge active' : 'badge suspended'">{{ t.status }}</span></td>
+        <td>{{ t.totalUsers }}</td>
+        <td>{{ t.createdAt | date:'mediumDate' }}</td>
+        <td class="actions">
+          <button class="secondary" (click)="openEdit(t.id)">Edit</button>
+          @if (t.statusCode === 1) {
+            <button class="warn" (click)="suspend(t.id)">Suspend</button>
+          } @else {
+            <button class="ok" (click)="reactivate(t.id)">Reactivate</button>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()"></div>
+  <aside class="drawer" role="dialog" aria-modal="true">
+    <div class="drawer-header">
+      <div>
+        <h2>{{ drawerMode() === 'create' ? 'New Tenant' : 'Edit Tenant' }}</h2>
+        @if (drawerMode() === 'create') {
+          <p class="drawer-hint">A tenant super admin login will be created using the contact email.</p>
+        }
+      </div>
+      <button type="button" class="icon-btn" (click)="closeDrawer()" aria-label="Close">×</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="drawer-body">
+      <label>Company Name<input formControlName="hospitalName" /></label>
+
+      <label>
+        Subdomain
+        <input formControlName="subdomain" placeholder="company-name" [readonly]="drawerMode() === 'edit'" />
+      </label>
+
+      <label>Contact First Name<input formControlName="primaryContactFirstName" /></label>
+      <label>Contact Last Name<input formControlName="primaryContactLastName" /></label>
+      <label>Contact Email<input formControlName="primaryContactEmail" type="email" /></label>
+      <label>Contact Phone<input formControlName="primaryContactPhone" /></label>
+      <label>Timezone<input formControlName="timezone" /></label>
+      <label>Address<textarea formControlName="address" rows="3"></textarea></label>
+
+      @if (drawerMode() === 'create') {
+        <label>
+          Login Password
+          <input formControlName="password" type="password" autocomplete="new-password" />
+          <span class="field-hint">Used for tenant portal login with the contact email.</span>
+        </label>
+      }
+
+      <div class="drawer-footer">
+        <button type="button" class="secondary" (click)="closeDrawer()">Cancel</button>
+        <button type="submit" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Saving...' : (drawerMode() === 'create' ? 'Create Tenant' : 'Save Changes') }}
+        </button>
+      </div>
+    </form>
+  </aside>
+}

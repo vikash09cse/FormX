@@ -1,0 +1,56 @@
+<header class="page-header">
+  <a routerLink="/document-templates" class="back-link">← Back to templates</a>
+  <h1>Edit template</h1>
+  @if (templateTypeName) {
+    <p class="subtitle">{{ templateTypeName }} template</p>
+  }
+</header>
+
+@if (loading()) {
+  <p class="status">Loading template…</p>
+} @else {
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+  @if (message()) {
+    <div class="success">{{ message() }}</div>
+  }
+
+  <form class="form-card" (ngSubmit)="save()">
+    <div class="grid">
+      <label>
+        Name
+        <input type="text" name="name" [(ngModel)]="name" maxlength="200" required />
+      </label>
+      <label>
+        Type
+        <input type="text" [ngModel]="templateTypeName" name="templateTypeName" disabled />
+      </label>
+      @if (templateType === 2) {
+        <label class="full">
+          Subject
+          <input type="text" name="subject" [(ngModel)]="subject" maxlength="300" required />
+        </label>
+      }
+      <label class="full body-field">
+        Body
+        <app-html-editor
+          [(ngModel)]="bodyHtml"
+          name="bodyHtml"
+          placeholder="Write the template body. Use placeholders like HospitalName, PatientName…"
+        />
+      </label>
+    </div>
+
+    <p class="hint">
+      Placeholders: HospitalName, PatientName, VisitCode, ReceiptNumber, TotalPaid, PaymentMode, and others.
+    </p>
+
+    <div class="form-actions">
+      <a routerLink="/document-templates" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </form>
+}

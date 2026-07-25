@@ -1,0 +1,88 @@
+@import 'flatpickr/dist/flatpickr.min.css';
+
+.flatpickr-calendar {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e2e8f0;
+  font-family: inherit;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #0f766e;
+  border-color: #0f766e;
+}
+
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: #0d9488;
+  border-color: #0d9488;
+}
+
+.flatpickr-day:hover {
+  background: #ccfbf1;
+  border-color: #ccfbf1;
+}
+
+.flatpickr-months .flatpickr-month {
+  height: 42px;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.flatpickr-input.dob-picker-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #0f172a;
+  background: #fff;
+  cursor: pointer;
+}
+
+.flatpickr-input.dob-picker-input:focus {
+  outline: 2px solid #99f6e4;
+  border-color: #0f766e;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #0f172a;
+  background: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+button, input {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}

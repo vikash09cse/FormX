@@ -1,0 +1,10 @@
+<div class="login-page">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="card">
+    <h1>Platform Admin</h1>
+    <p class="hint">FormX — Super Admin</p>
+    @if (error()) { <div class="error">{{ error() }}</div> }
+    <label>Email<input type="email" formControlName="email" /></label>
+    <label>Password<input type="password" formControlName="password" /></label>
+    <button type="submit" [disabled]="form.invalid || loading()">Login</button>
+  </form>
+</div>

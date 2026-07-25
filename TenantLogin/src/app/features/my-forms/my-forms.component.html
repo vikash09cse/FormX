@@ -1,0 +1,33 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>My Forms</h1>
+      <p class="subtitle">Forms assigned to your role — add and manage your entries</p>
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading forms…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No forms are available for your role yet.</div>
+} @else {
+  <div class="form-cards">
+    @for (f of items(); track f.id) {
+      <article class="form-card">
+        <div class="form-card-body">
+          <h2>{{ f.name }}</h2>
+          @if (f.description) {
+            <p class="form-desc">{{ f.description }}</p>
+          }
+        </div>
+        <div class="form-card-actions">
+          <a class="btn-secondary" [routerLink]="['/my-forms', f.id]">My entries</a>
+          <a class="btn-primary" [routerLink]="['/my-forms', f.id, 'new']">Add new entry</a>
+        </div>
+      </article>
+    }
+  </div>
+}

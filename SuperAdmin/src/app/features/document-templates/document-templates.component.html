@@ -1,0 +1,92 @@
+<header class="header">
+  <div>
+    <h1>Document templates</h1>
+    <p class="sub">Global Receipt and Email templates. New templates are copied to all tenants; updates stay global-only.</p>
+  </div>
+  <button type="button" (click)="openCreate()">Add template</button>
+</header>
+
+@if (message()) {
+  <div class="msg">{{ message() }}</div>
+}
+
+<div class="filters">
+  <select [(ngModel)]="typeFilter" (ngModelChange)="load()">
+    <option [ngValue]="null">All types</option>
+    <option [ngValue]="1">Receipt</option>
+    <option [ngValue]="2">Email</option>
+  </select>
+</div>
+
+@if (showForm()) {
+  <section class="form-card">
+    <h2>{{ editingId() ? 'Edit template' : 'New template' }}</h2>
+    <div class="grid">
+      <label>
+        Type
+        <select [(ngModel)]="templateType" [disabled]="!!editingId()">
+          <option [ngValue]="1">Receipt</option>
+          <option [ngValue]="2">Email</option>
+        </select>
+      </label>
+      <label>
+        Name
+        <input type="text" [(ngModel)]="name" maxlength="200" />
+      </label>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="isDefault" />
+        Set as default for this type
+      </label>
+    </div>
+    @if (templateType === 2) {
+      <label class="full">
+        Subject
+        <input type="text" [(ngModel)]="subject" maxlength="300" />
+      </label>
+    }
+    <label class="full">
+      Body
+      <app-html-editor [(ngModel)]="bodyHtml" placeholder="HTML with placeholders like HospitalName, PatientName" />
+    </label>
+    <p class="hint">{{ placeholderHint }}</p>
+    <div class="actions">
+      <button type="button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+      <button type="button" class="ghost" (click)="cancelForm()">Cancel</button>
+    </div>
+  </section>
+}
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (items().length === 0) {
+  <p class="empty">No templates yet.</p>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Updated</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of items(); track item.id) {
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.templateTypeName }}</td>
+          <td>{{ item.isDefault ? 'Yes' : '—' }}</td>
+          <td>{{ item.updatedAt | date: 'medium' }}</td>
+          <td class="actions">
+            <button type="button" class="ok" (click)="openEdit(item)">Edit</button>
+            @if (!item.isDefault) {
+              <button type="button" (click)="setDefault(item)">Set default</button>
+            }
+            <button type="button" class="delete" (click)="remove(item)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

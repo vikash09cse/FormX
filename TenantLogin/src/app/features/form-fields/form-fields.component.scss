@@ -1,0 +1,45 @@
+@import '../users/users.component.scss';
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.form-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 320px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.form-picker select {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+a.btn-primary,
+a.btn-text,
+a.icon-btn {
+  text-decoration: none;
+}
+
+a.btn-primary.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+a.btn-text {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+a.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

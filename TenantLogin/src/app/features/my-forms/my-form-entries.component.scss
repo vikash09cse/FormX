@@ -1,0 +1,25 @@
+@import '../users/users.component.scss';
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #0f766e;
+  text-decoration: none;
+}
+
+a.btn-primary,
+a.btn-text,
+a.icon-btn {
+  text-decoration: none;
+}
+
+a.btn-text {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+a.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

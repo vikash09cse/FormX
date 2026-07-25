@@ -1,0 +1,76 @@
+<header class="page-header">
+  <a routerLink="/forms" class="back-link">← Back to forms</a>
+  <div class="header-row">
+    <div>
+      <h1>{{ formName() }}</h1>
+      <p class="subtitle">Read-only preview of groups and fields</p>
+    </div>
+    <div class="row-actions">
+      <a class="btn-secondary" routerLink="/form-groups">Manage groups</a>
+      <a
+        class="btn-primary"
+        [routerLink]="['/form-fields/new']"
+        [queryParams]="{ formId: formId() }"
+        [class.disabled]="groups().length === 0"
+      >
+        Add new field
+      </a>
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (groups().length === 0) {
+  <div class="empty">
+    No groups yet.
+    <a routerLink="/form-groups" class="btn-text">Create a form group</a>
+  </div>
+} @else {
+  @for (g of groups(); track g.id) {
+    <section class="group-card">
+      <div class="group-header">
+        <h2>{{ g.groupName }}</h2>
+      </div>
+      @if (fieldsForGroup(g.id).length === 0) {
+        <p class="status">No fields in this group.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Order</th>
+                <th>Parent</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of fieldsForGroup(g.id); track f.id) {
+                <tr>
+                  <td>{{ f.controlLabel }}</td>
+                  <td>{{ f.controlTypeName }}</td>
+                  <td>{{ f.controlRequired ? 'Yes' : 'No' }}</td>
+                  <td>{{ f.displayOrder }}</td>
+                  <td>{{ f.parentFieldId ? 'Conditional' : '—' }}</td>
+                  <td class="actions-cell">
+                    <a
+                      class="icon-btn icon-btn-edit"
+                      title="Edit field"
+                      [routerLink]="['/form-fields', f.id, 'edit']"
+                      [queryParams]="{ formId: formId() }"
+                    >✎</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+}

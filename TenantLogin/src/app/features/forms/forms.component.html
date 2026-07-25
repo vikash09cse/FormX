@@ -1,0 +1,99 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Forms</h1>
+      <p class="subtitle">Create forms, assign a project and roles, then configure groups and fields.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openCreate()">Add form</button>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading forms…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No forms yet. <button type="button" class="btn-text" (click)="openCreate()">Add the first form</button></div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Project</th><th>Status</th><th>Order</th><th class="actions-col">Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (f of items(); track f.id) {
+          <tr>
+            <td data-label="Name">{{ f.name }}</td>
+            <td data-label="Project">{{ f.projectName || '—' }}</td>
+            <td data-label="Status"><span class="badge" [class.active]="f.statusCode === 1">{{ f.status }}</span></td>
+            <td data-label="Order">{{ f.displayOrder }}</td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <a class="btn-secondary" [routerLink]="['/forms', f.id]">Builder</a>
+                <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(f)">✎</button>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(f)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>{{ editing() ? 'Edit form' : 'Add form' }}</h2>
+        <button type="button" class="drawer-close" (click)="closeDrawer()">×</button>
+      </header>
+      @if (formError()) { <div class="error">{{ formError() }}</div> }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>Name<input [(ngModel)]="name" name="name" required /></label>
+        <label>Description<textarea [(ngModel)]="description" name="description" rows="3"></textarea></label>
+        <label>Project *
+          <select [(ngModel)]="projectId" name="projectId" required>
+            <option value="" disabled>Select project</option>
+            @for (p of projects(); track p.id) {
+              <option [ngValue]="p.id">{{ p.projectName }}</option>
+            }
+          </select>
+        </label>
+        @if (projects().length === 0) {
+          <div class="error">Create an active project before adding a form.</div>
+        }
+        <label>Display order<input type="number" [(ngModel)]="displayOrder" name="displayOrder" /></label>
+        <label>Status
+          <select [(ngModel)]="statusCode" name="statusCode">
+            <option [ngValue]="1">Active</option>
+            <option [ngValue]="2">Inactive</option>
+          </select>
+        </label>
+        <div>
+          <span class="field-hint">Assign roles that may fill this form</span>
+          @for (r of roles(); track r.id) {
+            <label class="check">
+              <input type="checkbox" [checked]="isRoleSelected(r.id)" (change)="toggleRole(r.id, $any($event.target).checked)" />
+              {{ r.name }}
+            </label>
+          }
+        </div>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving() || projects().length === 0">Save</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete form?"
+  [message]="deleteMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

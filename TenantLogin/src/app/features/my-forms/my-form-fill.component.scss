@@ -1,0 +1,102 @@
+@import '../users/users.component.scss';
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #0f766e;
+  text-decoration: none;
+}
+
+.fill-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: min(100%, 960px);
+}
+
+.project-field,
+.field-item > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.project-readonly {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.fill-form select,
+.fill-form input[type='text'],
+.fill-form input[type='email'],
+.fill-form input[type='date'],
+.fill-form input[type='password'] {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #fff;
+}
+
+.group-block {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.group-block h2 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+label.check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.label-only {
+  margin: 0;
+  color: #334155;
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+a.btn-secondary {
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .fields-grid {
+    grid-template-columns: 1fr;
+  }
+}

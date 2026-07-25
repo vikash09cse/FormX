@@ -1,0 +1,77 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Roles</h1>
+      <p class="subtitle">Custom tenant roles. Mark Leader to allow scoped submission viewing later.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openCreate()">Add role</button>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading roles…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No roles yet. <button type="button" class="btn-text" (click)="openCreate()">Add the first role</button></div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Leader</th><th>Status</th><th class="actions-col">Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (r of items(); track r.id) {
+          <tr>
+            <td data-label="Name">{{ r.name }}</td>
+            <td data-label="Leader">{{ r.isLeader ? 'Yes' : 'No' }}</td>
+            <td data-label="Status"><span class="badge" [class.active]="r.statusCode === 1">{{ r.status }}</span></td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(r)">✎</button>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(r)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <div>
+          <h2>{{ isEditing() ? 'Edit role' : 'Add role' }}</h2>
+        </div>
+        <button type="button" class="drawer-close" (click)="closeDrawer()" aria-label="Close">×</button>
+      </header>
+      @if (formError()) { <div class="error">{{ formError() }}</div> }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>Name<input [(ngModel)]="name" name="name" required maxlength="100" /></label>
+        <label class="check"><input type="checkbox" [(ngModel)]="isLeader" name="isLeader" /> Leader (can view scoped data)</label>
+        <label>Status
+          <select [(ngModel)]="statusCode" name="statusCode">
+            <option [ngValue]="1">Active</option>
+            <option [ngValue]="2">Inactive</option>
+          </select>
+        </label>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!confirmTarget()"
+  title="Delete role"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

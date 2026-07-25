@@ -1,0 +1,61 @@
+<header class="page-header">
+  <a routerLink="/my-forms" class="back-link">← Back to My Forms</a>
+  <div class="header-row">
+    <div>
+      <h1>{{ formName() }}</h1>
+      <p class="subtitle">Your submitted entries</p>
+    </div>
+    <a class="btn-primary" [routerLink]="['/my-forms', formId(), 'new']">Add new entry</a>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading entries…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">
+    No entries yet.
+    <a class="btn-text" [routerLink]="['/my-forms', formId(), 'new']">Add the first entry</a>
+  </div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Submitted</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of items(); track s.id) {
+          <tr>
+            <td data-label="Project">{{ s.projectName }}</td>
+            <td data-label="Submitted">{{ formatDate(s.submittedAt) }}</td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <a
+                  class="icon-btn icon-btn-edit"
+                  title="Edit"
+                  [routerLink]="['/my-forms', formId(), 'entries', s.id, 'edit']"
+                >✎</a>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(s)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete entry?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

@@ -1,0 +1,152 @@
+<header class="page-header">
+  <a [routerLink]="backLink()" class="back-link">← Back to form</a>
+  <div class="header-row">
+    <div>
+      <h1>{{ isEditing() ? 'Edit field' : 'Add new field' }}</h1>
+      <p class="subtitle">{{ formName() }}</p>
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (groups().length === 0) {
+  <div class="empty">
+    Create a form group first.
+    <a routerLink="/form-groups" class="btn-text">Go to form groups</a>
+  </div>
+} @else {
+  @if (formError()) {
+    <div class="error">{{ formError() }}</div>
+  }
+
+  <form class="page-form" (ngSubmit)="save()">
+    <label>
+      Control label
+      <input [(ngModel)]="controlLabel" name="controlLabel" required />
+    </label>
+    <label>
+      Form group
+      <select [(ngModel)]="formGroupId" name="formGroupId" required>
+        @for (g of groups(); track g.id) {
+          <option [ngValue]="g.id">{{ g.groupName }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Control type
+      <select [(ngModel)]="controlType" name="controlType">
+        @for (t of controlTypes; track t.id) {
+          <option [ngValue]="t.id">{{ t.name }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Display order
+      <input type="number" [(ngModel)]="displayOrder" name="displayOrder" />
+    </label>
+
+    @if (isTextboxType()) {
+      <label>
+        Max length
+        <input type="number" [(ngModel)]="controlMaxLength" name="controlMaxLength" />
+      </label>
+    }
+    <label [class.span-2]="!isTextboxType()">
+      Regex validation
+      <select [(ngModel)]="validationRegexPresetId" name="validationRegexPresetId">
+        <option [ngValue]="null">None</option>
+        @for (p of presets(); track p.id) {
+          <option [ngValue]="p.id">{{ p.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Parent field (conditional)
+      <select [(ngModel)]="parentFieldId" name="parentFieldId">
+        <option [ngValue]="null">None</option>
+        @for (p of parentCandidates(); track p.id) {
+          <option [ngValue]="p.id">{{ p.controlLabel }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      CSS class
+      <input [(ngModel)]="className" name="className" />
+    </label>
+
+    <div class="span-2 check-row">
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="controlRequired" name="controlRequired" />
+        Required
+      </label>
+      @if (isEmailType()) {
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="isSendEmailNotification" name="isSendEmailNotification" />
+          Send email on this field
+        </label>
+      }
+    </div>
+
+    @if (parentFieldId) {
+      <div class="multi-block span-2">
+        <span class="field-hint">Show when parent has any of these values</span>
+        @for (o of parentOptions(); track o.id) {
+          <label class="check">
+            <input
+              type="checkbox"
+              [checked]="isParentOptionSelected(o.id!)"
+              (change)="toggleParentOption(o.id!, $any($event.target).checked)"
+            />
+            {{ o.optionText }}
+          </label>
+        }
+      </div>
+    }
+
+    @if (needsOptions()) {
+      <div class="options-section span-2">
+        <div class="header-row">
+          <h3 class="options-title">Control Option Values</h3>
+          <button type="button" class="btn-secondary" (click)="addOptionRow()">+ Add</button>
+        </div>
+        <div class="options-head">
+          <span>Option Text*</span>
+          <span>Option Value*</span>
+          <span>Display Order*</span>
+          <span class="options-head-action"></span>
+        </div>
+        @for (o of optionRows; track $index; let i = $index) {
+          <div class="option-row">
+            <input [(ngModel)]="o.optionText" [name]="'ot' + i" required />
+            <input [(ngModel)]="o.optionValue" [name]="'ov' + i" required />
+            <input type="number" [(ngModel)]="o.displayOrder" [name]="'od' + i" required />
+            <button
+              type="button"
+              class="icon-btn icon-btn-delete"
+              title="Remove option"
+              [disabled]="optionRows.length === 1"
+              (click)="removeOptionRow(i)"
+            >×</button>
+          </div>
+        }
+      </div>
+    }
+
+    <label class="span-2">
+      Notes
+      <textarea [(ngModel)]="controlNotes" name="controlNotes" rows="2"></textarea>
+    </label>
+
+    <div class="form-actions span-2">
+      <a class="btn-secondary" [routerLink]="backLink()">Cancel</a>
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (isEditing() ? 'Save changes' : 'Add field') }}
+      </button>
+    </div>
+  </form>
+}

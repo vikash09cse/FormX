@@ -1,0 +1,44 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SharedKernel.Enums;
+using SharedKernel.Utilities.Extensions;
+
+namespace WebApi.Features.Submissions;
+
+[Route("api/submissions")]
+[ApiController]
+[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff},{RoleNames.Doctor}")]
+public class SubmissionsController(SubmissionsService service) : ControllerBase
+{
+    [HttpGet("available-forms")]
+    public async Task<IActionResult> GetAvailableForms(CancellationToken ct) =>
+        (await service.GetAvailableFormsAsync(ct)).ToActionResult();
+
+    [HttpGet("projects")]
+    public async Task<IActionResult> GetProjects(CancellationToken ct) =>
+        (await service.GetProjectsAsync(ct)).ToActionResult();
+
+    [HttpGet("forms/{formId:guid}/definition")]
+    public async Task<IActionResult> GetDefinition(Guid formId, CancellationToken ct) =>
+        (await service.GetDefinitionAsync(formId, ct)).ToActionResult();
+
+    [HttpGet]
+    public async Task<IActionResult> GetMyList([FromQuery] Guid formId, CancellationToken ct) =>
+        (await service.GetMyListAsync(formId, ct)).ToActionResult();
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct) =>
+        (await service.GetByIdAsync(id, ct)).ToActionResult();
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] SaveSubmissionRequest request, CancellationToken ct) =>
+        (await service.CreateAsync(request, ct)).ToActionResult();
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSubmissionRequest request, CancellationToken ct) =>
+        (await service.UpdateAsync(id, request, ct)).ToActionResult();
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct) =>
+        (await service.DeleteAsync(id, ct)).ToActionResult();
+}

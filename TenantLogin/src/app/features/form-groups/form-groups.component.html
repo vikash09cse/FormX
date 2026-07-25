@@ -1,0 +1,120 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Form Groups</h1>
+      <p class="subtitle">Organize fields into groups for each form</p>
+    </div>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="openCreate()"
+      [disabled]="!selectedFormId"
+    >
+      Add group
+    </button>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading forms…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (forms().length === 0) {
+  <div class="empty">Create a form first under Forms, then add groups here.</div>
+} @else {
+  <div class="toolbar">
+    <label class="form-picker">
+      Form
+      <select
+        name="selectedFormId"
+        [(ngModel)]="selectedFormId"
+        (ngModelChange)="onFormChange()"
+      >
+        @for (f of forms(); track f.id) {
+          <option [ngValue]="f.id">{{ f.name }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (groupsLoading()) {
+    <p class="status">Loading groups…</p>
+  } @else if (items().length === 0) {
+    <div class="empty">
+      No groups for this form yet.
+      <button type="button" class="btn-text" (click)="openCreate()">Add the first group</button>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Group name</th>
+            <th>Display name key</th>
+            <th>Order</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of items(); track g.id) {
+            <tr>
+              <td data-label="Group name">{{ g.groupName }}</td>
+              <td data-label="Display name key">{{ g.groupDisplayNameKey || '—' }}</td>
+              <td data-label="Order">{{ g.displayOrder }}</td>
+              <td data-label="Actions" class="actions-cell">
+                <div class="row-actions">
+                  <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(g)">✎</button>
+                  <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(g)">🗑</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>{{ isEditing() ? 'Edit group' : 'Add group' }}</h2>
+        <button type="button" class="drawer-close" (click)="closeDrawer()" aria-label="Close">×</button>
+      </header>
+      @if (formError()) {
+        <div class="error">{{ formError() }}</div>
+      }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>
+          Group name
+          <input [(ngModel)]="groupName" name="groupName" required maxlength="200" />
+        </label>
+        <label>
+          Display name key
+          <input [(ngModel)]="groupDisplayNameKey" name="groupDisplayNameKey" maxlength="200" />
+        </label>
+        <label>
+          Display order
+          <input type="number" [(ngModel)]="displayOrder" name="displayOrder" />
+        </label>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete form group?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>
