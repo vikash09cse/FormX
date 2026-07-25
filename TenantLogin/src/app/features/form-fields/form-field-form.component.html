@@ -84,6 +84,17 @@
         <input type="checkbox" [(ngModel)]="controlRequired" name="controlRequired" />
         Required
       </label>
+      @if (!isLabelType()) {
+        <label class="check">
+          <input
+            type="checkbox"
+            [(ngModel)]="displayOnList"
+            name="displayOnList"
+            [disabled]="!canEnableDisplayOnList()"
+          />
+          Show on list page
+        </label>
+      }
       @if (isEmailType()) {
         <label class="check">
           <input type="checkbox" [(ngModel)]="isSendEmailNotification" name="isSendEmailNotification" />
@@ -91,6 +102,9 @@
         </label>
       }
     </div>
+    @if (!isLabelType() && !canEnableDisplayOnList() && !displayOnList) {
+      <p class="field-hint span-2">At most 5 fields can be shown on the list page.</p>
+    }
 
     @if (parentFieldId) {
       <div class="multi-block span-2">

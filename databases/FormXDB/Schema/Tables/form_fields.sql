@@ -16,6 +16,7 @@ BEGIN
         parentfieldid             UNIQUEIDENTIFIER NULL,
         issendemailnotification   BIT              NOT NULL CONSTRAINT DF_form_fields_issendemailnotification DEFAULT (0),
         validationregexpresetid   UNIQUEIDENTIFIER NULL,
+        displayonlist             BIT              NOT NULL CONSTRAINT DF_form_fields_displayonlist DEFAULT (0),
         isdeleted                 BIT              NOT NULL CONSTRAINT DF_form_fields_isdeleted DEFAULT (0),
         createdby                 UNIQUEIDENTIFIER NULL,
         createdat                 DATETIME2        NOT NULL CONSTRAINT DF_form_fields_createdat DEFAULT (SYSUTCDATETIME()),
@@ -34,5 +35,6 @@ BEGIN
     CREATE INDEX IX_form_fields_formid ON dbo.form_fields (formid, displayorder) WHERE isdeleted = 0;
     CREATE INDEX IX_form_fields_formgroupid ON dbo.form_fields (formgroupid, displayorder) WHERE isdeleted = 0;
     CREATE INDEX IX_form_fields_parentfieldid ON dbo.form_fields (parentfieldid) WHERE parentfieldid IS NOT NULL AND isdeleted = 0;
+    CREATE INDEX IX_form_fields_displayonlist ON dbo.form_fields (formid) WHERE displayonlist = 1 AND isdeleted = 0;
 END
 GO

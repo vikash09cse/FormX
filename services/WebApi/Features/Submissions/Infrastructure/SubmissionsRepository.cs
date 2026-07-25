@@ -71,6 +71,20 @@ public class FormDefParentOptionRow
     public Guid OptionId { get; set; }
 }
 
+public class SubmissionListColumnRow
+{
+    public Guid FieldId { get; set; }
+    public string ControlLabel { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+}
+
+public class SubmissionListValueRow
+{
+    public Guid SubmissionId { get; set; }
+    public Guid FieldId { get; set; }
+    public string? ValueText { get; set; }
+}
+
 public class SubmissionListRow
 {
     public Guid SubmissionId { get; set; }
@@ -104,7 +118,8 @@ public interface ISubmissionsRepository
     Task<bool> UserCanAccessFormAsync(Guid tenantId, Guid userId, Guid formId, bool isSuperAdmin, CancellationToken ct);
     Task<(FormDefHeaderRow? Form, IReadOnlyList<FormDefGroupRow> Groups, IReadOnlyList<FormDefFieldRow> Fields, IReadOnlyList<FormDefOptionRow> Options, IReadOnlyList<FormDefParentOptionRow> Parents)>
         GetFormDefinitionAsync(Guid tenantId, Guid formId, CancellationToken ct);
-    Task<IEnumerable<SubmissionListRow>> GetMySubmissionsAsync(Guid tenantId, Guid userId, Guid formId, CancellationToken ct);
+    Task<(int TotalCount, IReadOnlyList<SubmissionListColumnRow> Columns, IReadOnlyList<SubmissionListRow> Items, IReadOnlyList<SubmissionListValueRow> Values)>
+        GetMySubmissionsPageAsync(Guid tenantId, Guid userId, Guid formId, int page, int pageSize, CancellationToken ct);
     Task<(SubmissionListRow? Header, IReadOnlyList<SubmissionValueRow> Values)> GetByIdAsync(Guid tenantId, Guid userId, Guid submissionId, CancellationToken ct);
     Task SaveAsync(Guid tenantId, Guid userId, Guid submissionId, Guid formId, string valuesJson, bool isNew, Guid actorId, CancellationToken ct);
     Task DeleteAsync(Guid tenantId, Guid userId, Guid submissionId, Guid actorId, CancellationToken ct);
@@ -158,13 +173,19 @@ public class SubmissionsRepository(DbHelper dbHelper) : ISubmissionsRepository
         return (form, groups, fields, options, parents);
     }
 
-    public async Task<IEnumerable<SubmissionListRow>> GetMySubmissionsAsync(Guid tenantId, Guid userId, Guid formId, CancellationToken ct)
+    public async Task<(int TotalCount, IReadOnlyList<SubmissionListColumnRow> Columns, IReadOnlyList<SubmissionListRow> Items, IReadOnlyList<SubmissionListValueRow> Values)>
+        GetMySubmissionsPageAsync(Guid tenantId, Guid userId, Guid formId, int page, int pageSize, CancellationToken ct)
     {
         using var conn = dbHelper.GetConnection();
-        return await conn.QueryAsync<SubmissionListRow>(
+        using var multi = await conn.QueryMultipleAsync(
             "dbo.sp_submission_get_list_mine",
-            new { tenantid = tenantId, userid = userId, formid = formId },
+            new { tenantid = tenantId, userid = userId, formid = formId, page, pagesize = pageSize },
             commandType: CommandType.StoredProcedure);
+        var total = await multi.ReadFirstAsync<int>();
+        var columns = (await multi.ReadAsync<SubmissionListColumnRow>()).ToList();
+        var items = (await multi.ReadAsync<SubmissionListRow>()).ToList();
+        var values = (await multi.ReadAsync<SubmissionListValueRow>()).ToList();
+        return (total, columns, items, values);
     }
 
     public async Task<(SubmissionListRow? Header, IReadOnlyList<SubmissionValueRow> Values)> GetByIdAsync(

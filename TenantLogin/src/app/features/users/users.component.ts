@@ -87,7 +87,7 @@ export class UsersComponent implements OnInit {
 
   canManageUser(user: TenantUser): boolean {
     if (user.id === this.currentUserId()) return false;
-    return user.roleCode === 2 || user.roleCode === 3; // Staff / Doctor (system JWT roles)
+    return user.roleCode === 2; // Staff (system JWT role)
   }
 
   roleNames(user: TenantUser): string {

@@ -45,6 +45,7 @@ public class FormFieldRow
     public Guid? ParentFieldId { get; set; }
     public bool IsSendEmailNotification { get; set; }
     public Guid? ValidationRegexPresetId { get; set; }
+    public bool DisplayOnList { get; set; }
 }
 
 public class FormFieldOptionRow
@@ -108,6 +109,7 @@ public interface IFormsRepository
         Guid? parentFieldId,
         bool isSendEmailNotification,
         Guid? validationRegexPresetId,
+        bool displayOnList,
         IReadOnlyList<(Guid OptionId, string Text, string Value, int Order)> options,
         IReadOnlyList<Guid> parentOptionIds,
         Guid actorId,
@@ -245,6 +247,7 @@ public class FormsRepository(DbHelper dbHelper) : IFormsRepository
         Guid? parentFieldId,
         bool isSendEmailNotification,
         Guid? validationRegexPresetId,
+        bool displayOnList,
         IReadOnlyList<(Guid OptionId, string Text, string Value, int Order)> options,
         IReadOnlyList<Guid> parentOptionIds,
         Guid actorId,
@@ -282,6 +285,7 @@ public class FormsRepository(DbHelper dbHelper) : IFormsRepository
                 parentfieldid = parentFieldId,
                 issendemailnotification = isSendEmailNotification,
                 validationregexpresetid = validationRegexPresetId,
+                displayonlist = displayOnList,
                 optionsjson = optionsJson,
                 parentoptionids = parentIds,
                 actorid = actorId,

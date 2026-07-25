@@ -17,7 +17,7 @@ public enum UserType : byte
     PlatformAdmin = 0,
     TenantSuperAdmin = 1,
     Staff = 2,
-    Doctor = 3,
+    // 3 was Doctor in hospital fork — not used in FormX
     BackOfficeUser = 4
 }
 
@@ -145,7 +145,6 @@ public static class RoleNames
     public const string PlatformAdmin = "PlatformAdmin";
     public const string TenantSuperAdmin = "TenantSuperAdmin";
     public const string Staff = "Staff";
-    public const string Doctor = "Doctor";
     public const string BackOfficeUser = "BackOfficeUser";
 
     public static string FromUserType(UserType type) => type switch
@@ -153,7 +152,6 @@ public static class RoleNames
         UserType.PlatformAdmin => PlatformAdmin,
         UserType.TenantSuperAdmin => TenantSuperAdmin,
         UserType.Staff => Staff,
-        UserType.Doctor => Doctor,
         UserType.BackOfficeUser => BackOfficeUser,
         _ => Staff
     };

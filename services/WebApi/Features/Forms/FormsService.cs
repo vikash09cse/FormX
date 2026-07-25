@@ -198,6 +198,18 @@ public class FormsService(IFormsRepository repository, IHttpContextAccessor http
 
         var isEmail = request.ControlType == (byte)FormFieldControlType.Email;
         var sendEmail = isEmail && request.IsSendEmailNotification;
+        var displayOnList = request.ControlType != (byte)FormFieldControlType.Label && request.DisplayOnList;
+
+        if (displayOnList)
+        {
+            var (existingFields, _, _) = await repository.GetFieldsAsync(TenantId, formId, ct);
+            var excludeId = fieldId is { } fid && fid != Guid.Empty ? fid : (Guid?)null;
+            var listCount = existingFields.Count(f => f.DisplayOnList && f.ControlType != (byte)FormFieldControlType.Label
+                && (excludeId == null || f.FieldId != excludeId.Value));
+            if (listCount >= 5)
+                return Result<FormFieldResponse>.Fail(ErrorCode.Validation, "At most 5 fields can be shown on the list page.");
+        }
+
         var needsOptions = request.ControlType is
             (byte)FormFieldControlType.Dropdown or
             (byte)FormFieldControlType.RadioButton or
@@ -228,14 +240,24 @@ public class FormsService(IFormsRepository repository, IHttpContextAccessor http
             ? (IReadOnlyList<Guid>)Array.Empty<Guid>()
             : (request.ParentOptionIds ?? []).Distinct().ToList();
 
-        await repository.SaveFieldAsync(
-            TenantId, formId, id, request.FormGroupId,
-            request.ControlLabel.Trim(), request.ControlType, request.ControlMaxLength, request.ControlRequired,
-            request.DisplayOrder, request.ControlNotes?.Trim(), fieldKey,
-            string.IsNullOrWhiteSpace(request.DisplayControlLabel) ? "visible" : request.DisplayControlLabel.Trim(),
-            request.ClassName?.Trim(),
-            request.ParentFieldId, sendEmail, request.ValidationRegexPresetId,
-            options, parentOptionIds, UserId, isNew, ct);
+        try
+        {
+            await repository.SaveFieldAsync(
+                TenantId, formId, id, request.FormGroupId,
+                request.ControlLabel.Trim(), request.ControlType, request.ControlMaxLength, request.ControlRequired,
+                request.DisplayOrder, request.ControlNotes?.Trim(), fieldKey,
+                string.IsNullOrWhiteSpace(request.DisplayControlLabel) ? "visible" : request.DisplayControlLabel.Trim(),
+                request.ClassName?.Trim(),
+                request.ParentFieldId, sendEmail, request.ValidationRegexPresetId, displayOnList,
+                options, parentOptionIds, UserId, isNew, ct);
+        }
+        catch (Exception ex)
+        {
+            var msg = ex.Message.Contains("At most 5 fields", StringComparison.OrdinalIgnoreCase)
+                ? "At most 5 fields can be shown on the list page."
+                : "Unable to save field.";
+            return Result<FormFieldResponse>.Fail(ErrorCode.Validation, msg);
+        }
 
         var (fields, opts, parents) = await repository.GetFieldsAsync(TenantId, formId, ct);
         var saved = fields.FirstOrDefault(f => f.FieldId == id);
@@ -286,7 +308,7 @@ public class FormsService(IFormsRepository repository, IHttpContextAccessor http
             f.FieldId, f.FormId, f.FormGroupId, f.ControlLabel, f.ControlType,
             ControlTypeName(f.ControlType), f.ControlMaxLength, f.ControlRequired, f.DisplayOrder,
             f.ControlNotes, f.FieldKey, f.DisplayControlLabel, f.ClassName, f.ParentFieldId,
-            f.IsSendEmailNotification, f.ValidationRegexPresetId,
+            f.IsSendEmailNotification, f.ValidationRegexPresetId, f.DisplayOnList,
             options.Select(o => new FormFieldOptionDto(o.OptionId, o.OptionText, o.OptionValue, o.DisplayOrder)).ToList(),
             parentOptionIds);
 

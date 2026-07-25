@@ -56,6 +56,7 @@ public record FormFieldResponse(
     Guid? ParentFieldId,
     bool IsSendEmailNotification,
     Guid? ValidationRegexPresetId,
+    bool DisplayOnList,
     IReadOnlyList<FormFieldOptionDto> Options,
     IReadOnlyList<Guid> ParentOptionIds);
 
@@ -73,6 +74,7 @@ public record SaveFormFieldRequest(
     Guid? ParentFieldId,
     bool IsSendEmailNotification,
     Guid? ValidationRegexPresetId,
+    bool DisplayOnList,
     IReadOnlyList<FormFieldOptionDto>? Options,
     IReadOnlyList<Guid>? ParentOptionIds);
 

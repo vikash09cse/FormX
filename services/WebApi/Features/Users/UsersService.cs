@@ -39,8 +39,8 @@ public class UsersService(
 
     public async Task<Result<TenantUserResponse>> CreateUserAsync(CreateTenantUserRequest request, CancellationToken ct)
     {
-        if (request.Role is not ((byte)UserType.Staff) and not ((byte)UserType.Doctor))
-            return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Only Staff and Doctor system types can be created.");
+        if (request.Role is not ((byte)UserType.Staff))
+            return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Only Staff system type can be created.");
 
         var tenantError = RequireTenantContext<TenantUserResponse>();
         if (tenantError != null) return tenantError;
@@ -66,8 +66,8 @@ public class UsersService(
 
     public async Task<Result<TenantUserResponse>> UpdateUserAsync(Guid userId, UpdateTenantUserRequest request, CancellationToken ct)
     {
-        if (request.Role is not ((byte)UserType.Staff) and not ((byte)UserType.Doctor))
-            return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Only Staff and Doctor system types are allowed.");
+        if (request.Role is not ((byte)UserType.Staff))
+            return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Only Staff system type is allowed.");
 
         if (string.IsNullOrWhiteSpace(request.FirstName) || request.FirstName.Trim().Length < 2)
             return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "First name must be at least 2 characters.");
@@ -134,8 +134,8 @@ public class UsersService(
         if (existing == null)
             return Result<bool>.Fail(ErrorCode.NotFound, "User not found.");
 
-        if (existing.Role is not ((byte)UserType.Staff) and not ((byte)UserType.Doctor))
-            return Result<bool>.Fail(ErrorCode.Forbidden, "Only Staff and Doctor accounts can be deleted.");
+        if (existing.Role is not ((byte)UserType.Staff))
+            return Result<bool>.Fail(ErrorCode.Forbidden, "Only Staff accounts can be deleted.");
 
         await repository.DeleteAsync(tenantId, userId, GetUserId(), ct);
         return Result<bool>.Ok(true, "User deleted successfully.");

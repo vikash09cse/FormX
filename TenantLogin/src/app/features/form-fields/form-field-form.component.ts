@@ -33,6 +33,7 @@ interface FormField {
   parentFieldId?: string | null;
   isSendEmailNotification: boolean;
   validationRegexPresetId?: string | null;
+  displayOnList: boolean;
   options: FieldOption[];
   parentOptionIds: string[];
 }
@@ -90,6 +91,7 @@ export class FormFieldFormComponent implements OnInit {
   parentFieldId: string | null = null;
   isSendEmailNotification = false;
   validationRegexPresetId: string | null = null;
+  displayOnList = false;
   optionRows: FieldOption[] = [{ optionText: '', optionValue: '', displayOrder: 1 }];
   selectedParentOptionIds = new Set<string>();
 
@@ -101,8 +103,24 @@ export class FormFieldFormComponent implements OnInit {
     return this.controlType === 8;
   }
 
+  isLabelType(): boolean {
+    return this.controlType === 7;
+  }
+
   isTextboxType(): boolean {
     return this.controlType === 4;
+  }
+
+  listFieldCount(): number {
+    return this.fields().filter(
+      f => f.displayOnList && f.id !== this.fieldId() && f.controlType !== 7
+    ).length;
+  }
+
+  canEnableDisplayOnList(): boolean {
+    if (this.isLabelType()) return false;
+    if (this.displayOnList) return true;
+    return this.listFieldCount() < 5;
   }
 
   needsOptions(): boolean {
@@ -189,6 +207,7 @@ export class FormFieldFormComponent implements OnInit {
     this.parentFieldId = f.parentFieldId ?? null;
     this.isSendEmailNotification = f.isSendEmailNotification;
     this.validationRegexPresetId = f.validationRegexPresetId ?? null;
+    this.displayOnList = !!f.displayOnList;
     this.optionRows = f.options?.length
       ? f.options.map(o => ({ ...o }))
       : [{ optionText: '', optionValue: '', displayOrder: 1 }];
@@ -245,6 +264,7 @@ export class FormFieldFormComponent implements OnInit {
       parentFieldId: this.parentFieldId,
       isSendEmailNotification: this.controlType === 8 && this.isSendEmailNotification,
       validationRegexPresetId: this.validationRegexPresetId,
+      displayOnList: !this.isLabelType() && this.displayOnList,
       options: this.needsOptions()
         ? this.optionRows.filter(o => o.optionText.trim()).map((o, i) => ({
             id: o.id ?? null,

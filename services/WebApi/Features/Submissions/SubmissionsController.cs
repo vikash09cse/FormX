@@ -7,7 +7,7 @@ namespace WebApi.Features.Submissions;
 
 [Route("api/submissions")]
 [ApiController]
-[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff},{RoleNames.Doctor}")]
+[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff}")]
 public class SubmissionsController(SubmissionsService service) : ControllerBase
 {
     [HttpGet("available-forms")]
@@ -23,8 +23,12 @@ public class SubmissionsController(SubmissionsService service) : ControllerBase
         (await service.GetDefinitionAsync(formId, ct)).ToActionResult();
 
     [HttpGet]
-    public async Task<IActionResult> GetMyList([FromQuery] Guid formId, CancellationToken ct) =>
-        (await service.GetMyListAsync(formId, ct)).ToActionResult();
+    public async Task<IActionResult> GetMyList(
+        [FromQuery] Guid formId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default) =>
+        (await service.GetMyListAsync(formId, page, pageSize, ct)).ToActionResult();
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct) =>

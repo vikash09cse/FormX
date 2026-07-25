@@ -40,13 +40,23 @@ public record FormDefinitionResponse(
     string? ProjectName,
     IReadOnlyList<FormDefinitionGroupDto> Groups);
 
+public record SubmissionListColumnDto(Guid FieldId, string Label);
+
 public record SubmissionListItemResponse(
     Guid Id,
     Guid FormId,
     Guid ProjectId,
     string ProjectName,
     DateTime SubmittedAt,
-    byte Status);
+    byte Status,
+    IReadOnlyDictionary<string, string?> Values);
+
+public record SubmissionListPageResponse(
+    int TotalCount,
+    int Page,
+    int PageSize,
+    IReadOnlyList<SubmissionListColumnDto> Columns,
+    IReadOnlyList<SubmissionListItemResponse> Items);
 
 public record SubmissionValueDto(Guid FieldId, string? ValueText);
 

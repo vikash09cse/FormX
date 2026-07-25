@@ -13,7 +13,7 @@
   <p class="status">Loading entries…</p>
 } @else if (error()) {
   <div class="error">{{ error() }}</div>
-} @else if (items().length === 0) {
+} @else if (totalCount() === 0) {
   <div class="empty">
     No entries yet.
     <a class="btn-text" [routerLink]="['/my-forms', formId(), 'new']">Add the first entry</a>
@@ -24,6 +24,9 @@
       <thead>
         <tr>
           <th>Project</th>
+          @for (c of columns(); track c.fieldId) {
+            <th>{{ c.label }}</th>
+          }
           <th>Submitted</th>
           <th class="actions-col">Actions</th>
         </tr>
@@ -32,6 +35,9 @@
         @for (s of items(); track s.id) {
           <tr>
             <td data-label="Project">{{ s.projectName }}</td>
+            @for (c of columns(); track c.fieldId) {
+              <td [attr.data-label]="c.label">{{ cellValue(s, c.fieldId) }}</td>
+            }
             <td data-label="Submitted">{{ formatDate(s.submittedAt) }}</td>
             <td data-label="Actions" class="actions-cell">
               <div class="row-actions">
@@ -47,6 +53,12 @@
         }
       </tbody>
     </table>
+  </div>
+
+  <div class="pager">
+    <button type="button" class="btn-secondary" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <span class="pager-status">Page {{ page() }} of {{ totalPages() }} ({{ totalCount() }} total)</span>
+    <button type="button" class="btn-secondary" [disabled]="page() >= totalPages()" (click)="nextPage()">Next</button>
   </div>
 }
 

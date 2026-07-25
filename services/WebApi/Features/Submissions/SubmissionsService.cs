@@ -70,17 +70,44 @@ public class SubmissionsService(
             form.FormId, form.Name, form.Description, form.ProjectId, form.ProjectName, groupDtos));
     }
 
-    public async Task<Result<IEnumerable<SubmissionListItemResponse>>> GetMyListAsync(Guid formId, CancellationToken ct)
+    public async Task<Result<SubmissionListPageResponse>> GetMyListAsync(Guid formId, int page, int pageSize, CancellationToken ct)
     {
-        var err = RequireTenant<IEnumerable<SubmissionListItemResponse>>();
+        var err = RequireTenant<SubmissionListPageResponse>();
         if (err != null) return err;
 
         if (!await repository.UserCanAccessFormAsync(TenantId, UserId, formId, IsSuperAdmin, ct))
-            return Result<IEnumerable<SubmissionListItemResponse>>.Fail(ErrorCode.Forbidden, "You do not have access to this form.");
+            return Result<SubmissionListPageResponse>.Fail(ErrorCode.Forbidden, "You do not have access to this form.");
 
-        var rows = await repository.GetMySubmissionsAsync(TenantId, UserId, formId, ct);
-        return Result<IEnumerable<SubmissionListItemResponse>>.Ok(rows.Select(r =>
-            new SubmissionListItemResponse(r.SubmissionId, r.FormId, r.ProjectId, r.ProjectName, r.SubmittedAt, r.Status)));
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 25;
+        if (pageSize > 100) pageSize = 100;
+
+        var (total, columns, items, values) = await repository.GetMySubmissionsPageAsync(
+            TenantId, UserId, formId, page, pageSize, ct);
+
+        var valuesBySubmission = values
+            .GroupBy(v => v.SubmissionId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyDictionary<string, string?>)g.ToDictionary(
+                    x => x.FieldId.ToString(),
+                    x => x.ValueText,
+                    StringComparer.OrdinalIgnoreCase));
+
+        var columnDtos = columns
+            .Select(c => new SubmissionListColumnDto(c.FieldId, c.ControlLabel))
+            .ToList();
+
+        var itemDtos = items.Select(r =>
+        {
+            valuesBySubmission.TryGetValue(r.SubmissionId, out var map);
+            map ??= new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            return new SubmissionListItemResponse(
+                r.SubmissionId, r.FormId, r.ProjectId, r.ProjectName, r.SubmittedAt, r.Status, map);
+        }).ToList();
+
+        return Result<SubmissionListPageResponse>.Ok(
+            new SubmissionListPageResponse(total, page, pageSize, columnDtos, itemDtos));
     }
 
     public async Task<Result<SubmissionDetailResponse>> GetByIdAsync(Guid submissionId, CancellationToken ct)

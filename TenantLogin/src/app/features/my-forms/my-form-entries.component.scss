@@ -23,3 +23,18 @@ a.icon-btn {
   align-items: center;
   justify-content: center;
 }
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pager-status {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+

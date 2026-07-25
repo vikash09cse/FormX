@@ -13,6 +13,6 @@ BEGIN
     WHERE tenantid = @tenantid
       AND userid = @userid
       AND isdeleted = 0
-      AND usertype IN (2, 3); -- Staff, Doctor only
+      AND usertype = 2; -- Staff only
 END
 GO

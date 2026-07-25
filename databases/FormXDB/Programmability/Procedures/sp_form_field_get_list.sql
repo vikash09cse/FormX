@@ -10,7 +10,7 @@ BEGIN
         ff.fieldid, ff.formid, ff.formgroupid, ff.controllabel, ff.controltype, ff.controlmaxlength,
         ff.controlrequired, ff.displayorder, ff.controlnotes, ff.fieldkey, ff.displaycontrollabel,
         ff.classname, ff.parentfieldid, ff.issendemailnotification, ff.validationregexpresetid,
-        ff.createdat, ff.updatedat
+        ff.displayonlist, ff.createdat, ff.updatedat
     FROM dbo.form_fields ff
     INNER JOIN dbo.forms f ON f.formid = ff.formid
     WHERE f.tenantid = @tenantid AND ff.formid = @formid AND ff.isdeleted = 0 AND f.isdeleted = 0

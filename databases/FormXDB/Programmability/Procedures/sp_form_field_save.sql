@@ -15,6 +15,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_form_field_save
     @parentfieldid              UNIQUEIDENTIFIER = NULL,
     @issendemailnotification    BIT,
     @validationregexpresetid    UNIQUEIDENTIFIER = NULL,
+    @displayonlist              BIT              = 0,
     @optionsjson                NVARCHAR(MAX)    = NULL, -- [{ "optionid","optiontext","optionvalue","displayorder" }]
     @parentoptionids            NVARCHAR(MAX)    = NULL, -- comma-separated GUIDs
     @actorid                    UNIQUEIDENTIFIER,
@@ -30,6 +31,24 @@ BEGIN
         RETURN;
     END;
 
+    -- Label control is never shown on list
+    IF @controltype = 7
+        SET @displayonlist = 0;
+
+    IF @displayonlist = 1
+    BEGIN
+        DECLARE @listCount INT;
+        SELECT @listCount = COUNT(1)
+        FROM dbo.form_fields
+        WHERE formid = @formid AND isdeleted = 0 AND displayonlist = 1 AND fieldid <> @fieldid;
+
+        IF @listCount >= 5
+        BEGIN
+            RAISERROR('At most 5 fields can be shown on the list page.', 16, 1);
+            RETURN;
+        END;
+    END;
+
     BEGIN TRANSACTION;
 
     IF @isnew = 1
@@ -37,11 +56,11 @@ BEGIN
         INSERT INTO dbo.form_fields
             (fieldid, formid, formgroupid, controllabel, controltype, controlmaxlength, controlrequired, displayorder,
              controlnotes, fieldkey, displaycontrollabel, classname, parentfieldid, issendemailnotification,
-             validationregexpresetid, createdby, updatedby)
+             validationregexpresetid, displayonlist, createdby, updatedby)
         VALUES
             (@fieldid, @formid, @formgroupid, @controllabel, @controltype, @controlmaxlength, @controlrequired, @displayorder,
              @controlnotes, @fieldkey, @displaycontrollabel, @classname, @parentfieldid, @issendemailnotification,
-             @validationregexpresetid, @actorid, @actorid);
+             @validationregexpresetid, @displayonlist, @actorid, @actorid);
     END
     ELSE
     BEGIN
@@ -59,6 +78,7 @@ BEGIN
             parentfieldid = @parentfieldid,
             issendemailnotification = @issendemailnotification,
             validationregexpresetid = @validationregexpresetid,
+            displayonlist = @displayonlist,
             updatedby = @actorid,
             updatedat = SYSUTCDATETIME()
         WHERE fieldid = @fieldid AND formid = @formid AND isdeleted = 0;

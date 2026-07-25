@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
-/** Default landing path by system role (Staff/Doctor → My Forms; Super Admin → Users). */
+/** Default landing path by system role (Staff → My Forms; Super Admin → Users). */
 export function tenantHomePath(role: string | null | undefined): string {
   return role === 'TenantSuperAdmin' ? '/users' : '/my-forms';
 }
