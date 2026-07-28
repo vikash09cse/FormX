@@ -326,7 +326,7 @@ public class SubmissionsService(
         new(
             f.FieldId, f.FormGroupId, f.ControlLabel, f.ControlType, ControlTypeName(f.ControlType),
             f.ControlMaxLength, f.ControlRequired, f.DisplayOrder, f.ControlNotes, f.FieldKey,
-            f.ParentFieldId, f.IsSendEmailNotification, f.ValidationRegexPresetId,
+            f.ClassName, f.ParentFieldId, f.IsSendEmailNotification, f.ValidationRegexPresetId,
             f.ValidationRegexPattern, f.ValidationRegexName,
             options.Where(o => o.FieldId == f.FieldId)
                 .Select(o => new FormDefinitionOptionDto(o.OptionId, o.OptionText, o.OptionValue, o.DisplayOrder)).ToList(),

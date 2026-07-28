@@ -22,6 +22,7 @@ interface FormField {
   displayOrder: number;
   controlNotes?: string | null;
   fieldKey: string;
+  className?: string | null;
   parentFieldId?: string | null;
   validationRegexPattern?: string | null;
   validationRegexName?: string | null;
@@ -44,6 +45,9 @@ interface FormDefinition {
   projectName?: string | null;
   groups: FormGroup[];
 }
+
+/** Allowed layout tokens from field.classname (Bootstrap-style). */
+const LAYOUT_TOKENS = new Set(['col-md-6', 'col-md-12', 'col-12', 'span-2']);
 
 @Component({
   selector: 'app-my-form-fill',
@@ -113,6 +117,33 @@ export class MyFormFillComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  /** Safe CSS layout classes from field.classname (+ safe defaults). */
+  layoutClasses(field: FormField): string {
+    // Conditional follow-ups (e.g. Other) always stack full-width under the parent
+    if (field.parentFieldId) {
+      return 'col-md-12';
+    }
+
+    const tokens = (field.className ?? '')
+      .split(/\s+/)
+      .map(t => t.trim().toLowerCase())
+      .filter(t => LAYOUT_TOKENS.has(t));
+
+    if (tokens.length === 0) {
+      // Option groups and labels default to full width when classname unset
+      if (field.controlType === 2 || field.controlType === 3 || field.controlType === 6 || field.controlType === 7) {
+        return 'col-md-12';
+      }
+      return 'col-md-6';
+    }
+
+    // Normalize aliases to grid classes we style
+    const normalized = tokens.map(t =>
+      t === 'col-12' || t === 'span-2' ? 'col-md-12' : t
+    );
+    return [...new Set(normalized)].join(' ');
   }
 
   loadSubmission(id: string) {

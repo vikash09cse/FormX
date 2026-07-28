@@ -42,6 +42,13 @@ export class TokenStorageService {
     }
   }
 
+  updateUser(patch: Partial<LoginResponse>): void {
+    const storage = this.activeStorage();
+    const user = this.getUser();
+    if (!storage || !user) return;
+    storage.setItem(USER_KEY, JSON.stringify({ ...user, ...patch }));
+  }
+
   getAccessToken(): string | null {
     return this.get(ACCESS_TOKEN_KEY);
   }

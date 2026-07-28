@@ -17,6 +17,7 @@ public record FormDefinitionFieldDto(
     int DisplayOrder,
     string? ControlNotes,
     string FieldKey,
+    string? ClassName,
     Guid? ParentFieldId,
     bool IsSendEmailNotification,
     Guid? ValidationRegexPresetId,

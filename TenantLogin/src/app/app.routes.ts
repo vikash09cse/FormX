@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, homeRedirectGuard, tenantSuperAdminGuard } from './core/auth/auth.guard';
+import { authGuard, guestGuard, tenantSuperAdminGuard } from './core/auth/auth.guard';
 import { LoginComponent } from './features/login/login.component';
 
 export const routes: Routes = [
@@ -13,11 +13,19 @@ export const routes: Routes = [
     loadComponent: () => import('./shared/layout/layout.component').then(m => m.LayoutComponent),
     canActivate: [authGuard],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
-        path: '',
-        pathMatch: 'full',
-        canActivate: [homeRedirectGuard],
-        loadComponent: () => import('./features/my-forms/my-forms.component').then(m => m.MyFormsComponent)
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/account/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'change-password',
+        loadComponent: () =>
+          import('./features/account/change-password.component').then(m => m.ChangePasswordComponent)
       },
       {
         path: 'my-forms',

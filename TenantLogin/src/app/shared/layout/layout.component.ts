@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 interface NavItem {
   label: string;
   route: string;
-  icon: 'users' | 'templates' | 'roles' | 'projects' | 'forms' | 'my-forms';
+  icon: 'dashboard' | 'users' | 'templates' | 'roles' | 'projects' | 'forms' | 'my-forms';
 }
 
 const SIDEBAR_COLLAPSED_KEY = 'tenant_sidebar_collapsed';
@@ -22,14 +22,18 @@ const SIDEBAR_COLLAPSED_KEY = 'tenant_sidebar_collapsed';
 export class LayoutComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly mobileSidebarOpen = signal(false);
   readonly sidebarCollapsed = signal(this.loadCollapsedPreference());
+  readonly userMenuOpen = signal(false);
   readonly user = computed(() => this.auth.currentUser());
 
   readonly mainNav = computed<NavItem[]>(() => [
     { label: 'My Forms', route: '/my-forms', icon: 'my-forms' }
   ]);
+
+  readonly dashboardItem: NavItem = { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' };
 
   readonly adminNav = computed<NavItem[]>(() => {
     if (this.user()?.role !== 'TenantSuperAdmin') return [];
@@ -49,7 +53,24 @@ export class LayoutComponent {
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed()
-    ).subscribe(() => this.closeMobileSidebar());
+    ).subscribe(() => {
+      this.closeMobileSidebar();
+      this.closeUserMenu();
+    });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.userMenuOpen()) return;
+    const target = event.target as Node | null;
+    if (target && !this.host.nativeElement.querySelector('.user-menu')?.contains(target)) {
+      this.closeUserMenu();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeUserMenu();
   }
 
   menuAriaLabel(): string {
@@ -89,7 +110,17 @@ export class LayoutComponent {
     }
   }
 
+  toggleUserMenu(event: Event) {
+    event.stopPropagation();
+    this.userMenuOpen.update(v => !v);
+  }
+
+  closeUserMenu() {
+    this.userMenuOpen.set(false);
+  }
+
   logout() {
+    this.closeUserMenu();
     this.auth.logout();
   }
 

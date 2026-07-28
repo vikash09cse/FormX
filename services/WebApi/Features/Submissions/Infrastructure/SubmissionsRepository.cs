@@ -49,6 +49,7 @@ public class FormDefFieldRow
     public int DisplayOrder { get; set; }
     public string? ControlNotes { get; set; }
     public string FieldKey { get; set; } = string.Empty;
+    public string? ClassName { get; set; }
     public Guid? ParentFieldId { get; set; }
     public bool IsSendEmailNotification { get; set; }
     public Guid? ValidationRegexPresetId { get; set; }

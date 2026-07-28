@@ -28,12 +28,17 @@
         <div class="fields-grid">
           @for (f of g.fields; track f.id) {
             @if (isVisible(f)) {
-              <div class="field-item" [class.span-2]="f.controlType === 3 || f.controlType === 7">
+              <div [class]="'field-item ' + layoutClasses(f)">
                 @if (f.controlType === 7) {
                   <p class="label-only">{{ f.controlLabel }}</p>
                 } @else {
-                  <label>
-                    {{ f.controlLabel }}@if (f.controlRequired) { * }
+                  <label class="field-label">
+                    <span class="field-label-text">
+                      {{ f.controlLabel }}
+                      @if (f.controlRequired) {
+                        <span class="required" aria-hidden="true">*</span>
+                      }
+                    </span>
                     @switch (f.controlType) {
                       @case (1) {
                         <select [(ngModel)]="values[f.id]" [name]="'f' + f.id">
@@ -48,7 +53,7 @@
                           @for (o of f.options; track o.id) {
                             <label class="check">
                               <input type="radio" [name]="'r' + f.id" [value]="o.optionValue" [(ngModel)]="values[f.id]" />
-                              {{ o.optionText }}
+                              <span>{{ o.optionText }}</span>
                             </label>
                           }
                         </div>
@@ -62,7 +67,7 @@
                                 [checked]="isMultiChecked(f.id, o.optionValue)"
                                 (change)="toggleMulti(f.id, o.optionValue, $any($event.target).checked)"
                               />
-                              {{ o.optionText }}
+                              <span>{{ o.optionText }}</span>
                             </label>
                           }
                         </div>
@@ -75,7 +80,7 @@
                           @for (o of f.options; track o.id) {
                             <label class="check">
                               <input type="radio" [name]="'c' + f.id" [value]="o.optionValue" [(ngModel)]="values[f.id]" />
-                              {{ o.optionText }}
+                              <span>{{ o.optionText }}</span>
                             </label>
                           }
                         </div>

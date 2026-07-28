@@ -2,9 +2,9 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
-/** Default landing path by system role (Staff → My Forms; Super Admin → Users). */
-export function tenantHomePath(role: string | null | undefined): string {
-  return role === 'TenantSuperAdmin' ? '/users' : '/my-forms';
+/** Default post-login landing path. */
+export function tenantHomePath(): string {
+  return '/dashboard';
 }
 
 /**
@@ -28,19 +28,12 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (auth.isLoggedIn()) {
-    return router.createUrlTree([tenantHomePath(auth.currentUser()?.role)]);
+    return router.createUrlTree([tenantHomePath()]);
   }
 
   // Avoid guest↔auth loops when a dead JWT is still stored.
   auth.discardInvalidSession();
   return true;
-};
-
-/** Empty-path redirect after auth shell loads (Super Admin → Users). */
-export const homeRedirectGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-  return router.createUrlTree([tenantHomePath(auth.currentUser()?.role)]);
 };
 
 export const tenantSuperAdminGuard: CanActivateFn = () => {

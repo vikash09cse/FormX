@@ -15,6 +15,27 @@ export interface LoginResponse {
   refreshTokenExpiry: string;
 }
 
+export interface UserProfile {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  designation?: string | null;
+  role: string;
+  roleCode: number;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  designation?: string | null;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface ApiResult<T> {
   success: boolean;
   message: string;

@@ -1,0 +1,53 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Profile</h1>
+      <p class="subtitle">Update your name and designation</p>
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading profile…</p>
+} @else {
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="success">{{ success() }}</div>
+  }
+
+  <form class="account-form" [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Email
+      <input type="email" [value]="email()" readonly />
+    </label>
+    <label>
+      Role
+      <input type="text" [value]="role()" readonly />
+    </label>
+    <label>
+      First name
+      <input type="text" formControlName="firstName" autocomplete="given-name" />
+      @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+        <span class="field-hint error-hint">First name must be at least 2 characters.</span>
+      }
+    </label>
+    <label>
+      Last name
+      <input type="text" formControlName="lastName" autocomplete="family-name" />
+      @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+        <span class="field-hint error-hint">Last name must be at least 2 characters.</span>
+      }
+    </label>
+    <label>
+      Designation
+      <input type="text" formControlName="designation" autocomplete="organization-title" />
+    </label>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </form>
+}

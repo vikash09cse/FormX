@@ -94,6 +94,12 @@ export class AuthService {
     }
   }
 
+  /** Patch stored session fields (e.g. after profile update) so the shell refreshes. */
+  patchCurrentUser(patch: Partial<LoginResponse>): void {
+    this.tokens.updateUser(patch);
+    this.currentUser.set(this.tokens.getUser());
+  }
+
   ensureValidToken(): Observable<boolean> {
     const token = this.getToken();
     if (!token) return of(false);
