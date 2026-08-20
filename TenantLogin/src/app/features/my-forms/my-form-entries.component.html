@@ -5,7 +5,17 @@
       <h1>{{ formName() }}</h1>
       <p class="subtitle">Your submitted entries</p>
     </div>
-    <a class="btn-primary" [routerLink]="['/my-forms', formId(), 'new']">Add new entry</a>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="exporting() || totalCount() === 0"
+        (click)="exportExcel()"
+      >
+        {{ exporting() ? 'Exporting…' : 'Export to Excel' }}
+      </button>
+      <a class="btn-primary" [routerLink]="['/my-forms', formId(), 'new']">Add new entry</a>
+    </div>
   </div>
 </header>
 

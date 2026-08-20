@@ -93,6 +93,7 @@ public class SubmissionListRow
     public Guid ProjectId { get; set; }
     public string ProjectName { get; set; } = string.Empty;
     public Guid SubmittedBy { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime SubmittedAt { get; set; }
     public byte Status { get; set; }
 }
@@ -121,6 +122,8 @@ public interface ISubmissionsRepository
         GetFormDefinitionAsync(Guid tenantId, Guid formId, CancellationToken ct);
     Task<(int TotalCount, IReadOnlyList<SubmissionListColumnRow> Columns, IReadOnlyList<SubmissionListRow> Items, IReadOnlyList<SubmissionListValueRow> Values)>
         GetMySubmissionsPageAsync(Guid tenantId, Guid userId, Guid formId, int page, int pageSize, string? search, CancellationToken ct);
+    Task<(int TotalCount, string? FormName, IReadOnlyList<SubmissionListColumnRow> Columns, IReadOnlyList<SubmissionListRow> Items, IReadOnlyList<SubmissionListValueRow> Values)>
+        ExportMineAsync(Guid tenantId, Guid userId, Guid formId, string? search, CancellationToken ct);
     Task<(SubmissionListRow? Header, IReadOnlyList<SubmissionValueRow> Values)> GetByIdAsync(Guid tenantId, Guid userId, Guid submissionId, CancellationToken ct);
     Task SaveAsync(Guid tenantId, Guid userId, Guid submissionId, Guid formId, string valuesJson, bool isNew, Guid actorId, CancellationToken ct);
     Task DeleteAsync(Guid tenantId, Guid userId, Guid submissionId, Guid actorId, CancellationToken ct);
@@ -187,6 +190,22 @@ public class SubmissionsRepository(DbHelper dbHelper) : ISubmissionsRepository
         var items = (await multi.ReadAsync<SubmissionListRow>()).ToList();
         var values = (await multi.ReadAsync<SubmissionListValueRow>()).ToList();
         return (total, columns, items, values);
+    }
+
+    public async Task<(int TotalCount, string? FormName, IReadOnlyList<SubmissionListColumnRow> Columns, IReadOnlyList<SubmissionListRow> Items, IReadOnlyList<SubmissionListValueRow> Values)>
+        ExportMineAsync(Guid tenantId, Guid userId, Guid formId, string? search, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        using var multi = await conn.QueryMultipleAsync(
+            "dbo.sp_submission_export_mine",
+            new { tenantid = tenantId, userid = userId, formid = formId, search },
+            commandType: CommandType.StoredProcedure);
+        var total = await multi.ReadFirstAsync<int>();
+        var formName = await multi.ReadFirstOrDefaultAsync<string>();
+        var columns = (await multi.ReadAsync<SubmissionListColumnRow>()).ToList();
+        var items = (await multi.ReadAsync<SubmissionListRow>()).ToList();
+        var values = (await multi.ReadAsync<SubmissionListValueRow>()).ToList();
+        return (total, formName, columns, items, values);
     }
 
     public async Task<(SubmissionListRow? Header, IReadOnlyList<SubmissionValueRow> Values)> GetByIdAsync(

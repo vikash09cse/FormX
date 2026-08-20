@@ -80,8 +80,14 @@ public static class DependencyInjection
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "FormX API",
+                Version = "v1"
+            });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
@@ -105,11 +111,12 @@ public static class DependencyInjection
 
     public static void UseGlobalConfigurations(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "FormX API v1");
+            c.RoutePrefix = "swagger";
+        });
 
         app.UseHttpsRedirection();
         app.UseCors("AllowAngularApps");

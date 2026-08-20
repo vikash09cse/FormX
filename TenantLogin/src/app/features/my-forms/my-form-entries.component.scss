@@ -12,6 +12,13 @@ a.btn-text {
   text-decoration: none;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 a.btn-text,
 button.btn-text {
   display: inline-block;

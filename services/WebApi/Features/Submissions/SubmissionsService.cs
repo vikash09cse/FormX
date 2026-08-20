@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using ClosedXML.Excel;
 using SharedKernel.Enums;
 using SharedKernel.Services;
 using SharedKernel.Utilities;
@@ -113,6 +114,89 @@ public class SubmissionsService(
 
         return Result<SubmissionListPageResponse>.Ok(
             new SubmissionListPageResponse(total, page, pageSize, columnDtos, itemDtos));
+    }
+
+    private const int MaxExportRows = 5000;
+
+    public async Task<Result<SubmissionExportFile>> ExportMyAsync(Guid formId, string? search, CancellationToken ct)
+    {
+        var err = RequireTenant<SubmissionExportFile>();
+        if (err != null) return err;
+
+        if (!await repository.UserCanAccessFormAsync(TenantId, UserId, formId, IsSuperAdmin, ct))
+            return Result<SubmissionExportFile>.Fail(ErrorCode.Forbidden, "You do not have access to this form.");
+
+        search = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+        if (search is { Length: > 100 })
+            search = search[..100];
+
+        var (total, formName, columns, items, values) = await repository.ExportMineAsync(
+            TenantId, UserId, formId, search, ct);
+
+        if (string.IsNullOrWhiteSpace(formName))
+            return Result<SubmissionExportFile>.Fail(ErrorCode.NotFound, "Form not found.");
+
+        if (total > MaxExportRows)
+            return Result<SubmissionExportFile>.Fail(
+                ErrorCode.Validation,
+                $"Too many rows to export (max {MaxExportRows:N0}). Narrow your search and try again.");
+
+        var valuesBySubmission = values
+            .GroupBy(v => v.SubmissionId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.ToDictionary(x => x.FieldId, x => x.ValueText));
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Entries");
+
+        var col = 1;
+        sheet.Cell(1, col++).Value = "Project";
+        foreach (var column in columns)
+            sheet.Cell(1, col++).Value = column.ControlLabel;
+        sheet.Cell(1, col++).Value = "Created by";
+        sheet.Cell(1, col).Value = "Submitted";
+
+        var headerRange = sheet.Range(1, 1, 1, col);
+        headerRange.Style.Font.Bold = true;
+
+        var row = 2;
+        foreach (var item in items)
+        {
+            valuesBySubmission.TryGetValue(item.SubmissionId, out var map);
+            col = 1;
+            sheet.Cell(row, col++).Value = item.ProjectName;
+            foreach (var column in columns)
+            {
+                string? text = null;
+                if (map != null)
+                    map.TryGetValue(column.FieldId, out text);
+                if (!string.IsNullOrEmpty(text))
+                    sheet.Cell(row, col).Value = text;
+                col++;
+            }
+            if (!string.IsNullOrEmpty(item.CreatedByName))
+                sheet.Cell(row, col).Value = item.CreatedByName;
+            col++;
+            sheet.Cell(row, col).Value = item.SubmittedAt.ToString("dd/MM/yyyy, HH:mm:ss");
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents(8.0, 60.0);
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        var fileName = $"{SanitizeFileName(formName)}-entries.xlsx";
+        return Result<SubmissionExportFile>.Ok(new SubmissionExportFile(stream.ToArray(), fileName));
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var cleaned = new string(name.Select(ch => invalid.Contains(ch) ? '-' : ch).ToArray()).Trim();
+        if (string.IsNullOrWhiteSpace(cleaned))
+            cleaned = "form";
+        return cleaned.Length > 80 ? cleaned[..80] : cleaned;
     }
 
     public async Task<Result<SubmissionDetailResponse>> GetByIdAsync(Guid submissionId, CancellationToken ct)

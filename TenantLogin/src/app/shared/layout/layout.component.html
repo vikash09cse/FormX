@@ -7,22 +7,11 @@
 
   <aside class="sidebar" [class.open]="mobileSidebarOpen()">
     <div class="brand">
-      <div class="brand-logo">F</div>
-      <div class="brand-text">
-        <span class="brand-name">FormX</span>
-        <span class="brand-tag">Tenant Portal</span>
-      </div>
+      <img src="images/humana-logo.png" alt="Humana" class="brand-logo" width="160" height="52" />
       <button type="button" class="collapse-btn sidebar-collapse-btn" aria-label="Collapse menu" (click)="toggleCollapse()">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
     </div>
-
-    @if (user(); as u) {
-      <div class="tenant-card" [title]="u.tenantName ?? ''">
-        <span class="tenant-label">Tenant</span>
-        <strong class="tenant-name">{{ u.tenantName ?? '—' }}</strong>
-      </div>
-    }
 
     <nav class="nav">
       <a [routerLink]="dashboardItem.route" routerLinkActive="active" class="nav-link"
@@ -32,7 +21,6 @@
         </span>
         <span class="nav-label">{{ dashboardItem.label }}</span>
       </a>
-      <span class="nav-section">Forms</span>
       @for (item of mainNav(); track item.route) {
         <a [routerLink]="item.route" routerLinkActive="active" class="nav-link"
            [title]="item.label" (click)="onNavClick()">

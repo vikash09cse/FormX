@@ -4,8 +4,11 @@ using WebApi;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(o => o.AddPolicy("AllowAngularApps", p =>
-    p.WithOrigins("http://localhost:4200", "https://localhost:4200",
-                  "http://localhost:4201", "https://localhost:4201")
+    p.WithOrigins(
+            "http://localhost:4200", "https://localhost:4200",
+            "http://localhost:4201", "https://localhost:4201",
+            "http://192.168.7.26:8092",
+            "http://192.168.7.26:8093")
      .AllowAnyHeader()
      .AllowAnyMethod()
      .AllowCredentials()));

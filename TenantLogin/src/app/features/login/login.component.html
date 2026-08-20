@@ -1,11 +1,9 @@
 <div class="login-page">
   <form [formGroup]="form" (ngSubmit)="submit()" class="card">
     <div class="brand">
-      <div class="brand-logo">F</div>
-      <div>
-        <h1>FormX Portal</h1>
-        <p class="hint">Sign in with your tenant account</p>
-      </div>
+      <img src="images/humana-logo.png" alt="Humana" class="brand-logo" width="220" height="72" />
+      <h1>Humana Form</h1>
+      <p class="hint">Sign in with your tenant account</p>
     </div>
 
     @if (error()) {

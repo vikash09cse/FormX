@@ -76,3 +76,5 @@ public record SaveSubmissionRequest(
 
 public record UpdateSubmissionRequest(
     IReadOnlyList<SubmissionValueDto>? Values);
+
+public record SubmissionExportFile(byte[] Content, string FileName);

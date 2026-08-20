@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="web.config" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 

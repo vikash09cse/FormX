@@ -22,6 +22,22 @@ public class SubmissionsController(SubmissionsService service) : ControllerBase
     public async Task<IActionResult> GetDefinition(Guid formId, CancellationToken ct) =>
         (await service.GetDefinitionAsync(formId, ct)).ToActionResult();
 
+    [HttpGet("forms/{formId:guid}/export")]
+    public async Task<IActionResult> ExportMine(
+        Guid formId,
+        [FromQuery] string? search = null,
+        CancellationToken ct = default)
+    {
+        var result = await service.ExportMyAsync(formId, search, ct);
+        if (!result.Success)
+            return result.ToActionResult();
+
+        return File(
+            result.Data!.Content,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            result.Data.FileName);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetMyList(
         [FromQuery] Guid formId,

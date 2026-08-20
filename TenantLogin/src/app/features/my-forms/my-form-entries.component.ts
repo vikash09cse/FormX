@@ -70,6 +70,7 @@ export class MyFormEntriesComponent implements OnInit {
   readonly error = signal('');
   readonly confirmTarget = signal<SubmissionItem | null>(null);
   readonly hasLoadedOnce = signal(false);
+  readonly exporting = signal(false);
 
   readonly displayedColumns = computed(() => [
     'projectName',
@@ -194,5 +195,81 @@ export class MyFormEntriesComponent implements OnInit {
         this.confirmTarget.set(null);
       }
     });
+  }
+
+  exportExcel() {
+    if (this.exporting() || this.totalCount() === 0) return;
+
+    this.exporting.set(true);
+    this.error.set('');
+    const params = new URLSearchParams();
+    const search = this.search().trim();
+    if (search) params.set('search', search);
+    const qs = params.toString();
+    const path = `/submissions/forms/${this.formId()}/export${qs ? `?${qs}` : ''}`;
+
+    this.api.getBlob(path).subscribe({
+      next: res => {
+        const blob = res.body;
+        if (!blob) {
+          this.error.set('Export failed.');
+          this.exporting.set(false);
+          return;
+        }
+        const fileName = this.fileNameFromContentDisposition(res.headers.get('content-disposition'))
+          ?? `${this.sanitizeFileName(this.formName())}-entries.xlsx`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exporting.set(false);
+      },
+      error: err => {
+        void this.readExportError(err).then(message => {
+          this.error.set(message);
+          this.exporting.set(false);
+        });
+      }
+    });
+  }
+
+  private fileNameFromContentDisposition(header: string | null): string | null {
+    if (!header) return null;
+    const utfMatch = /filename\*=UTF-8''([^;]+)/i.exec(header);
+    if (utfMatch?.[1]) {
+      try {
+        return decodeURIComponent(utfMatch[1].trim());
+      } catch {
+        return utfMatch[1].trim();
+      }
+    }
+    const plainMatch = /filename="?([^";]+)"?/i.exec(header);
+    return plainMatch?.[1]?.trim() ?? null;
+  }
+
+  private sanitizeFileName(name: string): string {
+    const cleaned = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').trim();
+    return cleaned || 'form';
+  }
+
+  private async readExportError(err: { error?: unknown; message?: string }): Promise<string> {
+    const fallback = 'Export failed.';
+    const body = err.error;
+    if (body instanceof Blob) {
+      try {
+        const text = await body.text();
+        const json = JSON.parse(text) as { message?: string };
+        return json.message || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+    if (body && typeof body === 'object' && 'message' in body) {
+      const message = (body as { message?: string }).message;
+      if (message) return message;
+    }
+    return err.message || fallback;
   }
 }

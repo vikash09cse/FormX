@@ -44,7 +44,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/JUC/",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",

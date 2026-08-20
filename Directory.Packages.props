@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageVersion Include="ClosedXML" Version="0.105.0" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="dbup" Version="5.0.41" />
     <PackageVersion Include="dbup-sqlserver" Version="6.0.0" />
