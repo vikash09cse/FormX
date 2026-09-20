@@ -1,10 +1,14 @@
 CREATE OR ALTER PROCEDURE dbo.sp_submission_get_list_mine
-    @tenantid  UNIQUEIDENTIFIER,
-    @userid    UNIQUEIDENTIFIER,
-    @formid    UNIQUEIDENTIFIER,
-    @page      INT = 1,
-    @pagesize  INT = 25,
-    @search    NVARCHAR(100) = NULL
+    @tenantid     UNIQUEIDENTIFIER,
+    @userid       UNIQUEIDENTIFIER,
+    @formid       UNIQUEIDENTIFIER,
+    @page         INT = 1,
+    @pagesize     INT = 25,
+    @search       NVARCHAR(100) = NULL,
+    @issuperadmin BIT = 0,
+    @datascope    TINYINT = 0,
+    @districtids  NVARCHAR(MAX) = NULL,
+    @projectids   NVARCHAR(MAX) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -19,14 +23,14 @@ BEGIN
     IF @search IS NOT NULL AND LTRIM(RTRIM(@search)) <> ''
         SET @like = N'%' + LTRIM(RTRIM(@search)) + N'%';
 
-    -- 1: total count
     SELECT COUNT(1) AS totalcount
     FROM dbo.form_submissions s
     INNER JOIN dbo.projects p ON p.projectid = s.projectid
     WHERE s.tenantid = @tenantid
       AND s.formid = @formid
-      AND s.submittedby = @userid
+      AND dbo.fn_submission_is_visible(@issuperadmin, @datascope, @userid, s.submittedby, s.districtid, s.projectid, @districtids, @projectids) = 1
       AND s.isdeleted = 0
+      AND s.parentsubmissionid IS NULL
       AND (
             @like IS NULL
             OR p.projectname LIKE @like
@@ -43,7 +47,6 @@ BEGIN
             )
         );
 
-    -- 2: list columns (0–5)
     SELECT TOP (5)
         ff.fieldid, ff.controllabel, ff.displayorder
     FROM dbo.form_fields ff
@@ -56,16 +59,18 @@ BEGIN
       AND ff.controltype <> 7
     ORDER BY ff.displayorder, ff.controllabel;
 
-    -- 3: page of submissions
     SELECT
         s.submissionid, s.formid, s.projectid, p.projectname,
-        s.submittedby, s.submittedat, s.status, s.createdat, s.updatedat
+        s.submittedby, s.submittedat, s.status,
+        s.stateid, s.districtid, s.blockid, s.villageid,
+        s.createdat, s.updatedat
     FROM dbo.form_submissions s
     INNER JOIN dbo.projects p ON p.projectid = s.projectid
     WHERE s.tenantid = @tenantid
       AND s.formid = @formid
-      AND s.submittedby = @userid
+      AND dbo.fn_submission_is_visible(@issuperadmin, @datascope, @userid, s.submittedby, s.districtid, s.projectid, @districtids, @projectids) = 1
       AND s.isdeleted = 0
+      AND s.parentsubmissionid IS NULL
       AND (
             @like IS NULL
             OR p.projectname LIKE @like
@@ -84,15 +89,15 @@ BEGIN
     ORDER BY s.submittedat DESC
     OFFSET @offset ROWS FETCH NEXT @pagesize ROWS ONLY;
 
-    -- 4: values for list fields on this page only
     ;WITH page_ids AS (
         SELECT s.submissionid
         FROM dbo.form_submissions s
         INNER JOIN dbo.projects p ON p.projectid = s.projectid
         WHERE s.tenantid = @tenantid
           AND s.formid = @formid
-          AND s.submittedby = @userid
+          AND dbo.fn_submission_is_visible(@issuperadmin, @datascope, @userid, s.submittedby, s.districtid, s.projectid, @districtids, @projectids) = 1
           AND s.isdeleted = 0
+          AND s.parentsubmissionid IS NULL
           AND (
                 @like IS NULL
                 OR p.projectname LIKE @like

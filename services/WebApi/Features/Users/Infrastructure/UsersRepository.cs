@@ -157,4 +157,23 @@ public class UsersRepository(DbHelper dbHelper) : IUsersRepository
             new { tenantid = tenantId, userid = userId, projectids = string.Join(",", projectIds), createdby = createdBy },
             commandType: CommandType.StoredProcedure);
     }
+
+    public async Task<IReadOnlyList<Guid>> GetDistrictScopeIdsAsync(Guid userId, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        var ids = await conn.QueryAsync<Guid>(
+            "dbo.sp_user_get_district_scope_ids",
+            new { userid = userId },
+            commandType: CommandType.StoredProcedure);
+        return ids.ToList();
+    }
+
+    public async Task SetDistrictScopesAsync(Guid userId, IEnumerable<Guid> districtIds, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        await conn.ExecuteAsync(
+            "dbo.sp_user_set_district_scopes",
+            new { userid = userId, districtids = string.Join(",", districtIds) },
+            commandType: CommandType.StoredProcedure);
+    }
 }

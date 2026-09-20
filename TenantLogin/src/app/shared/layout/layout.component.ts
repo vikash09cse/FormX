@@ -10,6 +10,11 @@ interface NavItem {
   icon: 'dashboard' | 'users' | 'templates' | 'roles' | 'projects' | 'forms' | 'my-forms';
 }
 
+interface LocationNavItem {
+  label: string;
+  route: string;
+}
+
 const SIDEBAR_COLLAPSED_KEY = 'tenant_sidebar_collapsed';
 
 @Component({
@@ -29,34 +34,87 @@ export class LayoutComponent {
   readonly userMenuOpen = signal(false);
   readonly user = computed(() => this.auth.currentUser());
 
-  readonly mainNav = computed<NavItem[]>(() => [
-    { label: 'My Forms', route: '/my-forms', icon: 'my-forms' }
-  ]);
+  readonly showDashboard = computed(() => this.hasMenu('dashboard'));
 
-  readonly dashboardItem: NavItem = { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' };
-
-  readonly adminNav = computed<NavItem[]>(() => {
-    if (this.user()?.role !== 'TenantSuperAdmin') return [];
-
-    return [
-      { label: 'Users', route: '/users', icon: 'users' },
-      { label: 'Roles', route: '/roles', icon: 'roles' },
-      { label: 'Projects', route: '/projects', icon: 'projects' },
-      { label: 'Forms', route: '/forms', icon: 'forms' },
-      { label: 'Templates', route: '/document-templates', icon: 'templates' }
-    ];
+  readonly mainNav = computed<NavItem[]>(() => {
+    if (!this.hasMenu('my-forms')) return [];
+    return [{ label: 'My Forms', route: '/my-forms', icon: 'my-forms' }];
   });
 
-  readonly showAdminSection = computed(() => this.adminNav().length > 0);
+  readonly adminNavBeforeLocation = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+    if (this.hasMenu('users')) {
+      items.push({ label: 'Users', route: '/users', icon: 'users' });
+    }
+    if (this.hasMenu('roles')) {
+      items.push({ label: 'Roles', route: '/roles', icon: 'roles' });
+    }
+    if (this.hasMenu('projects')) {
+      items.push({ label: 'Projects', route: '/projects', icon: 'projects' });
+    }
+    return items;
+  });
+
+  readonly adminNavAfterLocation = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+    if (this.hasMenu('forms')) {
+      items.push({ label: 'Forms', route: '/forms', icon: 'forms' });
+    }
+    if (this.hasMenu('templates')) {
+      items.push({ label: 'Templates', route: '/document-templates', icon: 'templates' });
+    }
+    return items;
+  });
+
+  readonly showLocationNav = computed(() => this.hasMenu('location'));
+
+  readonly locationNav: LocationNavItem[] = [
+    { label: 'State', route: '/locations/states' },
+    { label: 'District', route: '/locations/districts' },
+    { label: 'Block', route: '/locations/blocks' },
+    { label: 'Village', route: '/locations/villages' }
+  ];
+
+  readonly locationNavOpen = signal(this.isLocationUrl(this.router.url));
+  readonly locationNavActive = signal(this.isLocationUrl(this.router.url));
+
+  readonly showAdminSection = computed(
+    () =>
+      this.adminNavBeforeLocation().length > 0 ||
+      this.adminNavAfterLocation().length > 0 ||
+      this.showLocationNav()
+  );
 
   constructor() {
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed()
-    ).subscribe(() => {
+    ).subscribe(e => {
+      const url = (e as NavigationEnd).urlAfterRedirects;
+      const onLocation = this.isLocationUrl(url);
+      this.locationNavActive.set(onLocation);
+      if (onLocation) {
+        this.locationNavOpen.set(true);
+      }
       this.closeMobileSidebar();
       this.closeUserMenu();
     });
+  }
+
+  /** Tenant super admin sees all admin menus; staff see only assigned menu keys. */
+  hasMenu(key: string): boolean {
+    const u = this.user();
+    if (!u) return false;
+    if (u.role === 'TenantSuperAdmin') return true;
+    return (u.menus ?? []).includes(key);
+  }
+
+  toggleLocationNav() {
+    this.locationNavOpen.update(v => !v);
+  }
+
+  private isLocationUrl(url: string): boolean {
+    return url.includes('/locations/');
   }
 
   @HostListener('document:click', ['$event'])

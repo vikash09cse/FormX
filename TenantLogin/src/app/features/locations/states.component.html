@@ -1,0 +1,98 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>States</h1>
+      <p class="subtitle">Top-level geography for districts, blocks, and villages.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" [disabled]="downloadingTemplate()" (click)="downloadTemplate()">
+        {{ downloadingTemplate() ? 'Downloading…' : 'Download template' }}
+      </button>
+      <button type="button" class="btn-secondary" [disabled]="importing()" (click)="openImportPicker()">
+        {{ importing() ? 'Importing…' : 'Import Excel' }}
+      </button>
+      <input #importInput type="file" class="hidden-file-input" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="onImportFileSelected($event)" />
+      <button type="button" class="btn-primary" (click)="openCreate()">Add state</button>
+    </div>
+  </div>
+</header>
+
+@if (importMessage()) {
+  <div class="import-note">{{ importMessage() }}</div>
+}
+@if (importErrors().length > 0) {
+  <div class="import-errors">
+    <strong>Import issues</strong>
+    <ul>
+      @for (e of importErrors(); track e.rowNumber + e.message) {
+        <li>Row {{ e.rowNumber }}: {{ e.message }}</li>
+      }
+    </ul>
+  </div>
+}
+
+@if (loading()) {
+  <p class="status">Loading states…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No states yet. <button type="button" class="btn-text" (click)="openCreate()">Add the first state</button></div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Code</th><th>Status</th><th class="actions-col">Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td data-label="Name">{{ item.name }}</td>
+            <td data-label="Code">{{ item.code || '—' }}</td>
+            <td data-label="Status"><span class="badge" [class.active]="item.statusCode === 1">{{ item.status }}</span></td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(item)">✎</button>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(item)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>{{ isEditing() ? 'Edit state' : 'Add state' }}</h2>
+        <button type="button" class="drawer-close" (click)="closeDrawer()" aria-label="Close">×</button>
+      </header>
+      @if (formError()) { <div class="error">{{ formError() }}</div> }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>Name<input [(ngModel)]="name" name="name" required maxlength="200" /></label>
+        <label>Code<input [(ngModel)]="code" name="code" required maxlength="50" /></label>
+        <label>Status
+          <select [(ngModel)]="statusCode" name="statusCode">
+            <option [ngValue]="1">Active</option>
+            <option [ngValue]="2">Inactive</option>
+          </select>
+        </label>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!confirmTarget()"
+  title="Delete state"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

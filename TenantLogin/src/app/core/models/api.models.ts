@@ -13,6 +13,11 @@ export interface LoginResponse {
   expiresIn: number;
   refreshToken: string;
   refreshTokenExpiry: string;
+  dataScope?: number;
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  menus?: string[];
 }
 
 export interface UserProfile {

@@ -50,6 +50,8 @@ BEGIN
     FROM dbo.global_document_templates g
     WHERE g.isdeleted = 0;
 
+    EXEC dbo.sp_role_seed_defaults @tenantid = @tenantid, @createdby = @userid;
+
     COMMIT TRAN;
 
     SELECT @tenantid AS tenantid;

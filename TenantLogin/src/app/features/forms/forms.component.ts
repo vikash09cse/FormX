@@ -17,6 +17,18 @@ interface FormItem {
   statusCode: number;
   displayOrder: number;
   roleIds: string[];
+  collectLocation?: boolean;
+}
+
+interface FollowupConfig {
+  id?: string | null;
+  primaryFormId: string;
+  primaryFormName?: string | null;
+  followUpFormId?: string | null;
+  followUpFormName?: string | null;
+  allowMultiple: boolean;
+  usedAsFollowUpForFormId?: string | null;
+  usedAsFollowUpForFormName?: string | null;
 }
 
 @Component({
@@ -39,6 +51,8 @@ export class FormsComponent implements OnInit {
   readonly saving = signal(false);
   readonly formError = signal('');
   readonly confirmTarget = signal<FormItem | null>(null);
+  readonly followupConfig = signal<FollowupConfig | null>(null);
+  readonly followupOptions = signal<FormItem[]>([]);
 
   name = '';
   description = '';
@@ -46,6 +60,9 @@ export class FormsComponent implements OnInit {
   statusCode = 1;
   displayOrder = 0;
   selectedRoleIds = new Set<string>();
+  followUpFormId = '';
+  allowMultiple = true;
+  collectLocation = true;
 
   deleteMessage(): string {
     const item = this.confirmTarget();
@@ -91,6 +108,11 @@ export class FormsComponent implements OnInit {
     this.statusCode = 1;
     this.displayOrder = 0;
     this.selectedRoleIds = new Set();
+    this.followUpFormId = '';
+    this.allowMultiple = true;
+    this.collectLocation = true;
+    this.followupConfig.set(null);
+    this.followupOptions.set([]);
     this.formError.set('');
     this.drawerOpen.set(true);
   }
@@ -103,8 +125,36 @@ export class FormsComponent implements OnInit {
     this.statusCode = item.statusCode;
     this.displayOrder = item.displayOrder;
     this.selectedRoleIds = new Set(item.roleIds ?? []);
+    this.collectLocation = item.collectLocation ?? false;
+    this.followUpFormId = '';
+    this.allowMultiple = true;
+    this.followupConfig.set(null);
+    this.followupOptions.set([]);
     this.formError.set('');
     this.drawerOpen.set(true);
+    this.loadFollowupConfig(item.id);
+  }
+
+  private loadFollowupConfig(formId: string) {
+    this.api.get<ApiResult<FollowupConfig>>(`/forms/${formId}/followup-config`).subscribe({
+      next: res => {
+        const cfg = res.data ?? null;
+        this.followupConfig.set(cfg);
+        this.followUpFormId = cfg?.followUpFormId ?? '';
+        this.allowMultiple = cfg?.allowMultiple ?? true;
+        this.refreshFollowupOptions(formId, cfg?.followUpFormId ?? null);
+      },
+      error: () => {
+        this.followupConfig.set(null);
+        this.refreshFollowupOptions(formId, null);
+      }
+    });
+  }
+
+  private refreshFollowupOptions(primaryFormId: string, _currentFollowUpId: string | null) {
+    this.followupOptions.set(
+      this.items().filter(f => f.id !== primaryFormId && f.statusCode === 1)
+    );
   }
 
   toggleRole(id: string, checked: boolean) {
@@ -129,15 +179,50 @@ export class FormsComponent implements OnInit {
       projectId: this.projectId,
       status: this.statusCode,
       displayOrder: this.displayOrder,
-      roleIds: [...this.selectedRoleIds]
+      roleIds: [...this.selectedRoleIds],
+      collectLocation: this.collectLocation
     };
     const editing = this.editing();
     const req = editing
       ? this.api.put<ApiResult<FormItem>>(`/forms/${editing.id}`, body)
       : this.api.post<ApiResult<FormItem>>('/forms', body);
     req.subscribe({
-      next: () => { this.saving.set(false); this.drawerOpen.set(false); this.load(); },
+      next: res => {
+        const saved = res.data;
+        if (editing && saved) {
+          this.saveFollowupConfig(saved.id);
+          return;
+        }
+        this.saving.set(false);
+        this.drawerOpen.set(false);
+        this.load();
+      },
       error: err => { this.formError.set(err.error?.message ?? 'Save failed.'); this.saving.set(false); }
+    });
+  }
+
+  private saveFollowupConfig(formId: string) {
+    const usedAs = this.followupConfig()?.usedAsFollowUpForFormId;
+    if (usedAs) {
+      this.saving.set(false);
+      this.drawerOpen.set(false);
+      this.load();
+      return;
+    }
+
+    this.api.put<ApiResult<FollowupConfig>>(`/forms/${formId}/followup-config`, {
+      followUpFormId: this.followUpFormId || null,
+      allowMultiple: this.allowMultiple
+    }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.drawerOpen.set(false);
+        this.load();
+      },
+      error: err => {
+        this.formError.set(err.error?.message ?? 'Form saved, but follow-up config failed.');
+        this.saving.set(false);
+      }
     });
   }
 

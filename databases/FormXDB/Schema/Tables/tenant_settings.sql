@@ -12,10 +12,28 @@ BEGIN
         receiptheadertext       NVARCHAR(300)    NULL,
         receiptfootertext       NVARCHAR(300)    NULL,
         gsttaxnumber            NVARCHAR(50)     NULL,
+        dashboardlayout         NVARCHAR(20)     NOT NULL CONSTRAINT DF_tenant_settings_dashboardlayout DEFAULT (N'table'),
+        dashboardtopn           INT              NOT NULL CONSTRAINT DF_tenant_settings_dashboardtopn DEFAULT (12),
         createdat               DATETIME2        NOT NULL CONSTRAINT DF_tenant_settings_createdat DEFAULT (SYSUTCDATETIME()),
         updatedat               DATETIME2        NOT NULL CONSTRAINT DF_tenant_settings_updatedat DEFAULT (SYSUTCDATETIME()),
         CONSTRAINT FK_tenant_settings_tenant FOREIGN KEY (tenantid) REFERENCES dbo.tenants (tenantid),
         CONSTRAINT UQ_tenant_settings_tenant UNIQUE (tenantid)
     );
+END
+GO
+
+IF COL_LENGTH('dbo.tenant_settings', 'dashboardlayout') IS NULL
+BEGIN
+    ALTER TABLE dbo.tenant_settings
+        ADD dashboardlayout NVARCHAR(20) NOT NULL
+            CONSTRAINT DF_tenant_settings_dashboardlayout DEFAULT (N'table');
+END
+GO
+
+IF COL_LENGTH('dbo.tenant_settings', 'dashboardtopn') IS NULL
+BEGIN
+    ALTER TABLE dbo.tenant_settings
+        ADD dashboardtopn INT NOT NULL
+            CONSTRAINT DF_tenant_settings_dashboardtopn DEFAULT (12);
 END
 GO

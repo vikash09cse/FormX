@@ -2,7 +2,7 @@
   <div class="header-row">
     <div>
       <h1>Roles</h1>
-      <p class="subtitle">Custom tenant roles. Mark Leader to allow scoped submission viewing later.</p>
+      <p class="subtitle">Custom tenant roles: data scope, entry permissions, and sidebar menus for staff.</p>
     </div>
     <button type="button" class="btn-primary" (click)="openCreate()">Add role</button>
   </div>
@@ -18,13 +18,22 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Name</th><th>Leader</th><th>Status</th><th class="actions-col">Actions</th></tr>
+        <tr>
+          <th>Name</th>
+          <th>Data scope</th>
+          <th>Permissions</th>
+          <th>Menus</th>
+          <th>Status</th>
+          <th class="actions-col">Actions</th>
+        </tr>
       </thead>
       <tbody>
         @for (r of items(); track r.id) {
           <tr>
             <td data-label="Name">{{ r.name }}</td>
-            <td data-label="Leader">{{ r.isLeader ? 'Yes' : 'No' }}</td>
+            <td data-label="Data scope">{{ r.dataScopeLabel }}</td>
+            <td data-label="Permissions">{{ permissionsLabel(r) }}</td>
+            <td data-label="Menus">{{ menusLabel(r) }}</td>
             <td data-label="Status"><span class="badge" [class.active]="r.statusCode === 1">{{ r.status }}</span></td>
             <td data-label="Actions" class="actions-cell">
               <div class="row-actions">
@@ -51,7 +60,33 @@
       @if (formError()) { <div class="error">{{ formError() }}</div> }
       <form class="drawer-form" (ngSubmit)="save()">
         <label>Name<input [(ngModel)]="name" name="name" required maxlength="100" /></label>
-        <label class="check"><input type="checkbox" [(ngModel)]="isLeader" name="isLeader" /> Leader (can view scoped data)</label>
+        <label>Data scope
+          <select [(ngModel)]="dataScope" name="dataScope">
+            <option [ngValue]="0">Own</option>
+            <option [ngValue]="1">District</option>
+            <option [ngValue]="2">Project</option>
+            <option [ngValue]="3">All</option>
+          </select>
+        </label>
+        <div class="multi-block">
+          <span class="field-label">Entry permissions</span>
+          <label class="check"><input type="checkbox" [(ngModel)]="canCreate" name="canCreate" /> Can create entries</label>
+          <label class="check"><input type="checkbox" [(ngModel)]="canEdit" name="canEdit" /> Can edit entries</label>
+          <label class="check"><input type="checkbox" [(ngModel)]="canDelete" name="canDelete" /> Can delete entries</label>
+        </div>
+        <div class="multi-block">
+          <span class="field-label">Sidebar menus</span>
+          @for (m of menuOptions; track m.key) {
+            <label class="check">
+              <input
+                type="checkbox"
+                [checked]="isMenuSelected(m.key)"
+                (change)="toggleMenu(m.key, $any($event.target).checked)"
+              />
+              {{ m.label }}
+            </label>
+          }
+        </div>
         <label>Status
           <select [(ngModel)]="statusCode" name="statusCode">
             <option [ngValue]="1">Active</option>

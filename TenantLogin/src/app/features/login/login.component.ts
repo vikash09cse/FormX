@@ -32,7 +32,7 @@ export class LoginComponent {
     this.error.set('');
     const { email, password, rememberMe } = this.form.getRawValue();
     this.auth.login(email!, password!, !!rememberMe).subscribe({
-      next: () => this.router.navigate([tenantHomePath()]),
+      next: () => this.router.navigate([tenantHomePath(this.auth.currentUser())]),
       error: err => {
         const timedOut = err?.name === 'TimeoutError';
         this.error.set(

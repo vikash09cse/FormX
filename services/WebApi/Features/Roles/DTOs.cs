@@ -3,7 +3,12 @@ namespace WebApi.Features.Roles;
 public record RoleResponse(
     Guid Id,
     string Name,
-    bool IsLeader,
+    byte DataScope,
+    string DataScopeLabel,
+    bool CanCreate,
+    bool CanEdit,
+    bool CanDelete,
+    IReadOnlyList<string> Menus,
     string Status,
     byte StatusCode,
     DateTime CreatedAt,
@@ -11,5 +16,9 @@ public record RoleResponse(
 
 public record SaveRoleRequest(
     string Name,
-    bool IsLeader,
+    byte DataScope,
+    bool CanCreate,
+    bool CanEdit,
+    bool CanDelete,
+    IReadOnlyList<string>? Menus,
     byte Status);

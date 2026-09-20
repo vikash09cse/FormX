@@ -7,7 +7,7 @@ namespace WebApi.Features.Projects;
 
 [Route("api/projects")]
 [ApiController]
-[Authorize(Roles = RoleNames.TenantSuperAdmin)]
+[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff}")]
 public class ProjectsController(ProjectsService service) : ControllerBase
 {
     [HttpGet]

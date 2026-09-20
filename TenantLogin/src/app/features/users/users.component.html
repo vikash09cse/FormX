@@ -2,7 +2,7 @@
   <div class="header-row">
     <div>
       <h1>Users</h1>
-      <p class="subtitle">Manage tenant users, custom roles, and project scopes</p>
+      <p class="subtitle">Manage tenant users, custom roles, and project or district scopes</p>
     </div>
     <button type="button" class="btn-primary" (click)="openDrawer()">Add user</button>
   </div>
@@ -27,6 +27,7 @@
           <th>System role</th>
           <th>Custom roles</th>
           <th>Projects</th>
+          <th>Districts</th>
           <th>Status</th>
           <th class="actions-col">Actions</th>
         </tr>
@@ -39,6 +40,7 @@
             <td data-label="System role">{{ u.role }}</td>
             <td data-label="Custom roles">{{ roleNames(u) }}</td>
             <td data-label="Projects">{{ projectNames(u) }}</td>
+            <td data-label="Districts">{{ districtNames(u) }}</td>
             <td data-label="Status">
               <span class="badge" [class.active]="u.statusCode === 1">{{ u.status }}</span>
             </td>
@@ -160,8 +162,28 @@
         </div>
 
         <div class="multi-block">
+          <span class="field-label">District scopes</span>
+          <span class="field-hint">Limit district-scoped roles to selected districts</span>
+          @if (districts().length === 0) {
+            <span class="field-hint">No districts yet — add them under Location.</span>
+          } @else {
+            @for (d of districts(); track d.id) {
+              <label class="check">
+                <input
+                  type="checkbox"
+                  [checked]="isDistrictSelected(d.id)"
+                  [disabled]="saving()"
+                  (change)="toggleDistrict(d.id, $any($event.target).checked)"
+                />
+                {{ districtLabel(d) }}
+              </label>
+            }
+          }
+        </div>
+
+        <div class="multi-block">
           <span class="field-label">Project scopes</span>
-          <span class="field-hint">Limit the user to selected projects (leaders typically need a scope)</span>
+          <span class="field-hint">Limit the user to selected projects</span>
           @if (projects().length === 0) {
             <span class="field-hint">No projects yet — create them under Projects.</span>
           } @else {

@@ -140,6 +140,31 @@ public enum FormFieldControlType : byte
     Date = 9
 }
 
+public enum DataScope : byte
+{
+    Own = 0,
+    District = 1,
+    Project = 2,
+    All = 3
+}
+
+public static class MenuKeys
+{
+    public const string Dashboard = "dashboard";
+    public const string MyForms = "my-forms";
+    public const string Users = "users";
+    public const string Roles = "roles";
+    public const string Projects = "projects";
+    public const string Forms = "forms";
+    public const string Templates = "templates";
+    public const string Location = "location";
+
+    public static readonly string[] AllAdmin =
+    [
+        Dashboard, MyForms, Users, Roles, Projects, Forms, Templates, Location
+    ];
+}
+
 public static class RoleNames
 {
     public const string PlatformAdmin = "PlatformAdmin";

@@ -11,6 +11,7 @@ BEGIN
         f.description,
         f.status,
         f.displayorder,
+        f.collectlocation,
         f.createdat,
         f.updatedat
     FROM dbo.forms f

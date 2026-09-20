@@ -1,12 +1,13 @@
 ﻿CREATE OR ALTER PROCEDURE dbo.sp_form_create
-    @formid       UNIQUEIDENTIFIER,
-    @tenantid     UNIQUEIDENTIFIER,
-    @projectid    UNIQUEIDENTIFIER,
-    @name         NVARCHAR(200),
-    @description  NVARCHAR(1000) = NULL,
-    @status       TINYINT,
-    @displayorder INT,
-    @createdby    UNIQUEIDENTIFIER
+    @formid          UNIQUEIDENTIFIER,
+    @tenantid        UNIQUEIDENTIFIER,
+    @projectid       UNIQUEIDENTIFIER,
+    @name            NVARCHAR(200),
+    @description     NVARCHAR(1000) = NULL,
+    @status          TINYINT,
+    @displayorder    INT,
+    @collectlocation BIT = 1,
+    @createdby       UNIQUEIDENTIFIER
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -19,8 +20,8 @@ BEGIN
         RETURN;
     END;
 
-    INSERT INTO dbo.forms (formid, tenantid, projectid, name, description, status, displayorder, createdby, updatedby)
-    VALUES (@formid, @tenantid, @projectid, @name, @description, @status, @displayorder, @createdby, @createdby);
+    INSERT INTO dbo.forms (formid, tenantid, projectid, name, description, status, displayorder, collectlocation, createdby, updatedby)
+    VALUES (@formid, @tenantid, @projectid, @name, @description, @status, @displayorder, @collectlocation, @createdby, @createdby);
     SELECT @formid;
 END
 GO

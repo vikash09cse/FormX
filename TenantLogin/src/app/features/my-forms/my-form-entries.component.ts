@@ -9,6 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { debounceTime, Subject } from 'rxjs';
 import { ApiService } from '../../core/api/api.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { ApiResult } from '../../core/models/api.models';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
@@ -53,6 +54,7 @@ interface SubmissionListPage {
 })
 export class MyFormEntriesComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly searchInput$ = new Subject<string>();
@@ -71,6 +73,14 @@ export class MyFormEntriesComponent implements OnInit {
   readonly confirmTarget = signal<SubmissionItem | null>(null);
   readonly hasLoadedOnce = signal(false);
   readonly exporting = signal(false);
+
+  readonly isSuperAdmin = computed(
+    () => this.auth.currentUser()?.role === 'TenantSuperAdmin'
+  );
+
+  readonly canCreate = computed(() => this.auth.currentUser()?.canCreate ?? true);
+  readonly canEdit = computed(() => this.auth.currentUser()?.canEdit ?? true);
+  readonly canDelete = computed(() => this.auth.currentUser()?.canDelete ?? true);
 
   readonly displayedColumns = computed(() => [
     'projectName',

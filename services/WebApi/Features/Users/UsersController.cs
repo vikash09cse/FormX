@@ -8,7 +8,7 @@ namespace WebApi.Features.Users;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = RoleNames.TenantSuperAdmin)]
+[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff}")]
 public class UsersController(UsersService service) : ControllerBase
 {
     [HttpGet]

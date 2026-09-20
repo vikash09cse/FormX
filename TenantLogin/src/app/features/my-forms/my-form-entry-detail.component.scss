@@ -1,0 +1,78 @@
+@import '../users/users.component.scss';
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #0f766e;
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+a.btn-primary,
+a.btn-secondary,
+a.btn-text {
+  text-decoration: none;
+}
+
+.detail-section {
+  margin-top: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.section-note {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem 1.25rem;
+  margin: 0;
+
+  dt {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+    color: #0f172a;
+    word-break: break-word;
+  }
+}
+
+.empty {
+  padding: 1rem 0;
+}
+
+.btn-text {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #0f766e;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}

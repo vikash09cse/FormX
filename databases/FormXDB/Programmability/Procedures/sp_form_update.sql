@@ -1,12 +1,13 @@
 ﻿CREATE OR ALTER PROCEDURE dbo.sp_form_update
-    @tenantid     UNIQUEIDENTIFIER,
-    @formid       UNIQUEIDENTIFIER,
-    @projectid    UNIQUEIDENTIFIER,
-    @name         NVARCHAR(200),
-    @description  NVARCHAR(1000) = NULL,
-    @status       TINYINT,
-    @displayorder INT,
-    @updatedby    UNIQUEIDENTIFIER
+    @tenantid        UNIQUEIDENTIFIER,
+    @formid          UNIQUEIDENTIFIER,
+    @projectid       UNIQUEIDENTIFIER,
+    @name            NVARCHAR(200),
+    @description     NVARCHAR(1000) = NULL,
+    @status          TINYINT,
+    @displayorder    INT,
+    @collectlocation BIT = 1,
+    @updatedby       UNIQUEIDENTIFIER
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -25,6 +26,7 @@ BEGIN
         description = @description,
         status = @status,
         displayorder = @displayorder,
+        collectlocation = @collectlocation,
         updatedby = @updatedby,
         updatedat = SYSUTCDATETIME()
     WHERE tenantid = @tenantid AND formid = @formid AND isdeleted = 0;

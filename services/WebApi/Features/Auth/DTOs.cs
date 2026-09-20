@@ -24,4 +24,9 @@ public record LoginResponse(
     string TokenType,
     int ExpiresIn,
     string RefreshToken,
-    DateTime RefreshTokenExpiry);
+    DateTime RefreshTokenExpiry,
+    byte DataScope = 0,
+    bool CanCreate = true,
+    bool CanEdit = true,
+    bool CanDelete = true,
+    IReadOnlyList<string>? Menus = null);

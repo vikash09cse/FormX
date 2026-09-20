@@ -1,0 +1,131 @@
+<header class="page-header">
+  <a [routerLink]="['/my-forms', formId()]" class="back-link">← Back to entries</a>
+  <div class="header-row">
+    <div>
+      <h1>{{ formName() }}</h1>
+      <p class="subtitle">Entry detail</p>
+    </div>
+    <div class="header-actions">
+      <a
+        class="btn-secondary"
+        [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'edit']"
+      >
+        Edit entry
+      </a>
+      @if (canAddFollowup()) {
+        <a
+          class="btn-primary"
+          [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'followups', 'new']"
+        >
+          Add follow-up
+        </a>
+      }
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (parent()) {
+  <section class="detail-section">
+    <h2>Primary entry</h2>
+    <dl class="detail-grid">
+      <div>
+        <dt>Project</dt>
+        <dd>{{ parent()!.projectName }}</dd>
+      </div>
+      <div>
+        <dt>Submitted</dt>
+        <dd>{{ formatDate(parent()!.submittedAt) }}</dd>
+      </div>
+      @for (f of parentFields(); track f.id) {
+        <div>
+          <dt>{{ f.controlLabel }}</dt>
+          <dd>{{ parentValue(f.id) }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  <section class="detail-section">
+    <div class="section-header">
+      <h2>Follow-ups</h2>
+      @if (followupConfig()?.followUpFormName) {
+        <p class="section-note">Form: {{ followupConfig()?.followUpFormName }}</p>
+      }
+    </div>
+
+    @if (!followupConfig()) {
+      <p class="status">No follow-up form is configured for this form.</p>
+    } @else if (followups().length === 0) {
+      <div class="empty">
+        <p>No follow-ups yet.</p>
+        @if (canAddFollowup()) {
+          <a
+            class="btn-text"
+            [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'followups', 'new']"
+          >
+            Add the first follow-up
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Submitted</th>
+              @for (c of followupColumns(); track c.fieldId) {
+                <th>{{ c.label }}</th>
+              }
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of followups(); track f.id) {
+              <tr>
+                <td data-label="Submitted">{{ formatDate(f.submittedAt) }}</td>
+                @for (c of followupColumns(); track c.fieldId) {
+                  <td [attr.data-label]="c.label">{{ cellValue(f, c.fieldId) }}</td>
+                }
+                <td data-label="Actions" class="actions-cell">
+                  <div class="row-actions">
+                    <a
+                      class="btn-secondary"
+                      [routerLink]="[
+                        '/my-forms',
+                        formId(),
+                        'entries',
+                        submissionId(),
+                        'followups',
+                        f.id,
+                        'edit'
+                      ]"
+                    >
+                      Edit
+                    </a>
+                    <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(f)">
+                      🗑
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete follow-up?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

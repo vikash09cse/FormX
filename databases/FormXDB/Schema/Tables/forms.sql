@@ -8,6 +8,7 @@ BEGIN
         description  NVARCHAR(1000)   NULL,
         status       TINYINT          NOT NULL CONSTRAINT DF_forms_status DEFAULT (1),
         displayorder INT              NOT NULL CONSTRAINT DF_forms_displayorder DEFAULT (0),
+        collectlocation BIT           NOT NULL CONSTRAINT DF_forms_collectlocation DEFAULT (1),
         isdeleted    BIT              NOT NULL CONSTRAINT DF_forms_isdeleted DEFAULT (0),
         createdby    UNIQUEIDENTIFIER NULL,
         createdat    DATETIME2        NOT NULL CONSTRAINT DF_forms_createdat DEFAULT (SYSUTCDATETIME()),

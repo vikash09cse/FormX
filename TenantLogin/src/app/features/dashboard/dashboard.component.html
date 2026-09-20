@@ -4,5 +4,218 @@
       <h1>Dashboard</h1>
       <p class="subtitle">Welcome to Humana Form</p>
     </div>
+    @if (isSuperAdmin()) {
+      <button type="button" class="btn-secondary" (click)="openSettings()">Dashboard settings</button>
+    }
   </div>
 </header>
+
+@if (loading()) {
+  <p class="status">Loading dashboard…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else {
+  <div class="kpi-strip">
+    <article class="kpi-card">
+      <p class="kpi-label">Forms</p>
+      <p class="kpi-value">{{ totals().formCount }}</p>
+    </article>
+    <article class="kpi-card">
+      <p class="kpi-label">Entries</p>
+      <p class="kpi-value">{{ totals().entryCount }}</p>
+    </article>
+  </div>
+
+  @if (settings().layout !== 'topN') {
+    <div class="list-toolbar">
+      <label class="search-field">
+        <span class="visually-hidden">Search forms</span>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Search forms or projects…"
+          maxlength="100"
+          [ngModel]="searchText()"
+          (ngModelChange)="onSearch($event)"
+        />
+      </label>
+    </div>
+  }
+
+  @if (forms().length === 0) {
+    <div class="empty">
+      <p>No forms available yet.</p>
+      <a class="btn-text" routerLink="/my-forms">Go to My Forms</a>
+    </div>
+  } @else if (settings().layout === 'cards') {
+    @if (displayForms().length === 0) {
+      <div class="empty"><p>No forms match your search.</p></div>
+    } @else {
+      <div class="dash-cards">
+        @for (f of displayForms(); track f.id) {
+          <a class="dash-card" [routerLink]="['/my-forms', f.id]">
+            <h2>{{ f.name }}</h2>
+            <p class="dash-card-meta">{{ f.projectName || '—' }}</p>
+            <p class="dash-card-count">{{ f.entryCount }}</p>
+          </a>
+        }
+      </div>
+    }
+  } @else if (settings().layout === 'topN') {
+    <section class="topn-section">
+      <div class="section-header">
+        <h2>Top {{ settings().topN }} forms by entries</h2>
+        <a class="btn-text" routerLink="/my-forms">View all forms</a>
+      </div>
+      @if (displayForms().length === 0) {
+        <div class="empty"><p>No forms available yet.</p></div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Form</th>
+                <th>Project</th>
+                <th class="num-col">Entries</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of displayForms(); track f.id; let i = $index) {
+                <tr>
+                  <td data-label="#">{{ i + 1 }}</td>
+                  <td data-label="Form">
+                    <a [routerLink]="['/my-forms', f.id]">{{ f.name }}</a>
+                  </td>
+                  <td data-label="Project">{{ f.projectName || '—' }}</td>
+                  <td data-label="Entries" class="num-col">{{ f.entryCount }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  } @else {
+    @if (displayForms().length === 0) {
+      <div class="empty"><p>No forms match your search.</p></div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Form</th>
+              <th>Project</th>
+              <th class="num-col">Entries</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of displayForms(); track f.id) {
+              <tr>
+                <td data-label="Form">
+                  <a [routerLink]="['/my-forms', f.id]">{{ f.name }}</a>
+                </td>
+                <td data-label="Project">{{ f.projectName || '—' }}</td>
+                <td data-label="Entries" class="num-col">{{ f.entryCount }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <label>
+          Rows
+          <select [ngModel]="pageSize()" (ngModelChange)="setPageSize(+$event)">
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
+          </select>
+        </label>
+        <span class="pager-info">
+          Page {{ page() }} of {{ totalPages() }} ({{ totalFiltered() }} forms)
+        </span>
+        <div class="pager-actions">
+          <button type="button" class="btn-secondary" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+          <button type="button" class="btn-secondary" [disabled]="page() >= totalPages()" (click)="nextPage()">Next</button>
+        </div>
+      </div>
+    }
+  }
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeSettings()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>Dashboard settings</h2>
+        <button type="button" class="drawer-close" (click)="closeSettings()">×</button>
+      </header>
+      @if (settingsError()) {
+        <div class="error">{{ settingsError() }}</div>
+      }
+      <form class="drawer-form" (ngSubmit)="saveSettings()">
+        <label>
+          Layout
+          <select [(ngModel)]="editLayout" name="layout">
+            <option value="table">Searchable table</option>
+            <option value="cards">Card grid</option>
+            <option value="topN">Top N by entries</option>
+          </select>
+        </label>
+        @if (editLayout === 'topN') {
+          <label>
+            Top N (5–50)
+            <input type="number" [(ngModel)]="editTopN" name="topN" min="5" max="50" />
+          </label>
+        }
+
+        <div class="form-picker">
+          <div class="form-picker-header">
+            <span class="field-label">Forms to display</span>
+            <div class="form-picker-actions">
+              <button type="button" class="btn-text" (click)="selectAllForms()">Select all</button>
+              <button type="button" class="btn-text" (click)="clearFormSelection()">Clear</button>
+            </div>
+          </div>
+          <p class="field-hint">
+            Leave none selected to show all forms. Staff always see their assigned forms.
+            @if (selectedCount() > 0) {
+              <span> ({{ selectedCount() }} selected)</span>
+            }
+          </p>
+          <input
+            type="search"
+            class="search-input"
+            placeholder="Search forms…"
+            maxlength="100"
+            [ngModel]="formPickerSearch()"
+            (ngModelChange)="formPickerSearch.set($event)"
+            name="formPickerSearch"
+          />
+          <div class="form-picker-list">
+            @if (pickerForms().length === 0) {
+              <p class="status">No forms found.</p>
+            } @else {
+              @for (f of pickerForms(); track f.id) {
+                <label class="check">
+                  <input
+                    type="checkbox"
+                    [checked]="isFormSelected(f.id)"
+                    (change)="toggleForm(f.id, $any($event.target).checked)"
+                  />
+                  {{ f.name }}
+                </label>
+              }
+            }
+          </div>
+        </div>
+
+        <p class="field-hint">Layout settings apply to all users in this tenant. Form selection applies to admin dashboard only.</p>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeSettings()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">Save</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}

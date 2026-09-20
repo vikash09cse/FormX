@@ -19,8 +19,14 @@ static class Program
         "document_templates.sql",
         "roles.sql",
         "user_roles.sql",
+        "role_menus.sql",
         "projects.sql",
         "user_scopes.sql",
+        "states.sql",
+        "districts.sql",
+        "blocks.sql",
+        "villages.sql",
+        "user_district_scopes.sql",
         "forms.sql",
         "form_groups.sql",
         "validation_regex_presets.sql",
@@ -29,7 +35,9 @@ static class Program
         "form_field_parent_options.sql",
         "form_roles.sql",
         "form_submissions.sql",
-        "form_submission_values.sql"
+        "form_submission_values.sql",
+        "form_followup_configs.sql",
+        "tenant_dashboard_forms.sql"
     ];
 
     static int Main(string[] args)

@@ -9,6 +9,7 @@ public record FormResponse(
     string Status,
     byte StatusCode,
     int DisplayOrder,
+    bool CollectLocation,
     IReadOnlyList<Guid> RoleIds,
     DateTime CreatedAt,
     DateTime UpdatedAt);
@@ -19,6 +20,7 @@ public record SaveFormRequest(
     Guid ProjectId,
     byte Status,
     int DisplayOrder,
+    bool CollectLocation,
     IReadOnlyList<Guid>? RoleIds);
 
 public record FormGroupResponse(
@@ -84,3 +86,17 @@ public record ValidationRegexPresetResponse(
     string Pattern,
     string? Description,
     int DisplayOrder);
+
+public record FormFollowupConfigResponse(
+    Guid? Id,
+    Guid PrimaryFormId,
+    string? PrimaryFormName,
+    Guid? FollowUpFormId,
+    string? FollowUpFormName,
+    bool AllowMultiple,
+    Guid? UsedAsFollowUpForFormId,
+    string? UsedAsFollowUpForFormName);
+
+public record SaveFormFollowupConfigRequest(
+    Guid? FollowUpFormId,
+    bool AllowMultiple = true);

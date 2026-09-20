@@ -4,7 +4,8 @@
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT roleid, name, isleader, rolestatus AS status, createdat, updatedat
+    SELECT roleid, name, isleader, datascope, cancreate, canedit, candelete,
+           rolestatus AS status, createdat, updatedat
     FROM dbo.roles
     WHERE tenantid = @tenantid AND roleid = @roleid AND isdeleted = 0;
 END

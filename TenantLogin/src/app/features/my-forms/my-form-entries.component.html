@@ -3,7 +3,7 @@
   <div class="header-row">
     <div>
       <h1>{{ formName() }}</h1>
-      <p class="subtitle">Your submitted entries</p>
+      <p class="subtitle">{{ isSuperAdmin() ? 'All form entries' : 'Your submitted entries' }}</p>
     </div>
     <div class="header-actions">
       <button
@@ -14,7 +14,10 @@
       >
         {{ exporting() ? 'Exporting…' : 'Export to Excel' }}
       </button>
-      <a class="btn-primary" [routerLink]="['/my-forms', formId(), 'new']">Add new entry</a>
+      @if (canCreate()) {
+        <a class="btn-primary" [routerLink]="['/my-forms', formId(), 'new']">Add new entry</a>
+      }
+
     </div>
   </div>
 </header>
@@ -51,7 +54,10 @@
       <button type="button" class="btn-text" (click)="clearSearch()">Clear search</button>
     } @else {
       <p>No entries yet.</p>
-      <a class="btn-text" [routerLink]="['/my-forms', formId(), 'new']">Add the first entry</a>
+      @if (canCreate()) {
+        <a class="btn-text" [routerLink]="['/my-forms', formId(), 'new']">Add the first entry</a>
+      }
+
     }
   </div>
 } @else if (!error() && totalCount() > 0) {
@@ -81,20 +87,32 @@
             <a
               mat-icon-button
               color="primary"
-              title="Edit"
-              [routerLink]="['/my-forms', formId(), 'entries', s.id, 'edit']"
+              title="View"
+              [routerLink]="['/my-forms', formId(), 'entries', s.id]"
             >
-              <mat-icon>edit</mat-icon>
+              <mat-icon>visibility</mat-icon>
             </a>
-            <button
-              mat-icon-button
-              color="warn"
-              type="button"
-              title="Delete"
-              (click)="askDelete(s)"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
+            @if (canEdit()) {
+              <a
+                mat-icon-button
+                color="primary"
+                title="Edit"
+                [routerLink]="['/my-forms', formId(), 'entries', s.id, 'edit']"
+              >
+                <mat-icon>edit</mat-icon>
+              </a>
+            }
+            @if (canDelete()) {
+              <button
+                mat-icon-button
+                color="warn"
+                type="button"
+                title="Delete"
+                (click)="askDelete(s)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
           </td>
         </ng-container>
 

@@ -63,6 +63,10 @@
         @if (projects().length === 0) {
           <div class="error">Create an active project before adding a form.</div>
         }
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="collectLocation" name="collectLocation" />
+          Collect location (State &amp; District required; Block &amp; Village optional)
+        </label>
         <label>Display order<input type="number" [(ngModel)]="displayOrder" name="displayOrder" /></label>
         <label>Status
           <select [(ngModel)]="statusCode" name="statusCode">
@@ -79,6 +83,31 @@
             </label>
           }
         </div>
+        @if (editing()) {
+          @if (followupConfig()?.usedAsFollowUpForFormId) {
+            <p class="field-hint">
+              Used as follow-up for
+              <strong>{{ followupConfig()?.usedAsFollowUpForFormName }}</strong>.
+              This form cannot have its own follow-up.
+            </p>
+          } @else {
+            <label>Follow-up form
+              <select [(ngModel)]="followUpFormId" name="followUpFormId">
+                <option value="">None</option>
+                @for (f of followupOptions(); track f.id) {
+                  <option [ngValue]="f.id">{{ f.name }}</option>
+                }
+              </select>
+            </label>
+            <p class="field-hint">Staff can add follow-up entries under each primary entry when a follow-up form is selected.</p>
+            @if (followUpFormId) {
+              <label class="check">
+                <input type="checkbox" [(ngModel)]="allowMultiple" name="allowMultiple" />
+                Allow multiple follow-ups per entry
+              </label>
+            }
+          }
+        }
         <div class="drawer-actions">
           <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
           <button type="submit" class="btn-primary" [disabled]="saving() || projects().length === 0">Save</button>

@@ -7,7 +7,7 @@ namespace WebApi.Features.Forms;
 
 [Route("api/forms")]
 [ApiController]
-[Authorize(Roles = RoleNames.TenantSuperAdmin)]
+[Authorize(Roles = $"{RoleNames.TenantSuperAdmin},{RoleNames.Staff}")]
 public class FormsController(FormsService service) : ControllerBase
 {
     [HttpGet]
@@ -61,6 +61,18 @@ public class FormsController(FormsService service) : ControllerBase
     [HttpDelete("{formId:guid}/fields/{fieldId:guid}")]
     public async Task<IActionResult> DeleteField(Guid formId, Guid fieldId, CancellationToken ct) =>
         (await service.DeleteFieldAsync(formId, fieldId, ct)).ToActionResult();
+
+    [HttpGet("{formId:guid}/fields/{fieldId:guid}")]
+    public async Task<IActionResult> DeleteFieldWrong() => NotFound();
+
+    [HttpGet("{formId:guid}/followup-config")]
+    public async Task<IActionResult> GetFollowupConfig(Guid formId, CancellationToken ct) =>
+        (await service.GetFollowupConfigAsync(formId, ct)).ToActionResult();
+
+    [HttpPut("{formId:guid}/followup-config")]
+    public async Task<IActionResult> SaveFollowupConfig(
+        Guid formId, [FromBody] SaveFormFollowupConfigRequest request, CancellationToken ct) =>
+        (await service.SaveFollowupConfigAsync(formId, request, ct)).ToActionResult();
 
     [HttpGet("~/api/validation-regex-presets")]
     public async Task<IActionResult> GetRegexPresets(CancellationToken ct) =>

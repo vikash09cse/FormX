@@ -15,4 +15,6 @@ public interface IUsersRepository
     Task SetRolesAsync(Guid tenantId, Guid userId, IEnumerable<Guid> roleIds, Guid createdBy, CancellationToken ct);
     Task<IReadOnlyList<Guid>> GetScopeProjectIdsAsync(Guid tenantId, Guid userId, CancellationToken ct);
     Task SetScopesAsync(Guid tenantId, Guid userId, IEnumerable<Guid> projectIds, Guid createdBy, CancellationToken ct);
+    Task<IReadOnlyList<Guid>> GetDistrictScopeIdsAsync(Guid userId, CancellationToken ct);
+    Task SetDistrictScopesAsync(Guid userId, IEnumerable<Guid> districtIds, CancellationToken ct);
 }

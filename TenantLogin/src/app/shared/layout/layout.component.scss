@@ -356,17 +356,25 @@
   flex-direction: column;
 }
 
-.user-menu-dropdown a {
+.user-menu-dropdown a,
+.user-menu-dropdown button {
   display: block;
+  width: 100%;
   padding: 0.625rem 0.75rem;
+  border: 0;
+  background: transparent;
   border-radius: 8px;
   color: #0f172a;
+  text-align: left;
   text-decoration: none;
+  font: inherit;
   font-size: 0.875rem;
   font-weight: 500;
+  cursor: pointer;
 }
 
-.user-menu-dropdown a:hover {
+.user-menu-dropdown a:hover,
+.user-menu-dropdown button:hover {
   background: #f0fdfa;
   color: #0f766e;
 }

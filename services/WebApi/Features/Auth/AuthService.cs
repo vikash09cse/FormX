@@ -8,11 +8,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using System.Text;
 using WebApi.Features.Auth.Infrastructure;
+using WebApi.Features.Permissions;
 
 namespace WebApi.Features.Auth;
 
 public class AuthService(
     IAuthRepository repository,
+    IPermissionsRepository permissionsRepository,
     JwtHelper jwtHelper,
     IHttpContextAccessor httpContextAccessor)
 {
@@ -52,7 +54,7 @@ public class AuthService(
         await repository.SaveRefreshTokenAsync(context.UserId, null, HashToken(context.RefreshToken), context.RefreshTokenExpiry, ct);
         await repository.LogLoginAttemptAsync(null, request.Email, LoginType.Platform, true, null, ip, ct);
 
-        return Result<LoginResponse>.Ok(ToLoginResponse(context), LoginSuccessMessage);
+        return Result<LoginResponse>.Ok(ToLoginResponse(context, null), LoginSuccessMessage);
     }
 
     public async Task<Result<LoginResponse>> TenantLoginAsync(TenantLoginRequest request, CancellationToken ct)
@@ -106,14 +108,19 @@ public class AuthService(
         await repository.UpdateUserLastLoginAsync(user.UserId, ct);
         await repository.LogLoginAttemptAsync(user.TenantId, email, LoginType.Tenant, true, null, ip, ct);
 
-        return Result<LoginResponse>.Ok(ToLoginResponse(context), LoginSuccessMessage);
+        var perms = await permissionsRepository.GetForUserAsync(
+            user.TenantId.Value,
+            user.UserId,
+            userType == UserType.TenantSuperAdmin,
+            ct);
+
+        return Result<LoginResponse>.Ok(ToLoginResponse(context, perms), LoginSuccessMessage);
     }
 
     public async Task<Result<LoginResponse>> RefreshTokenAsync(string bearerToken, CancellationToken ct)
     {
         try
         {
-            // Allow expired access tokens within the configured refresh window.
             var context = jwtHelper.ValidateAndCreateTenantContextAllowExpired(bearerToken);
             jwtHelper.CreateToken(context);
             await repository.SaveRefreshTokenAsync(
@@ -122,7 +129,18 @@ public class AuthService(
                 HashToken(context.RefreshToken),
                 context.RefreshTokenExpiry,
                 ct);
-            return Result<LoginResponse>.Ok(ToLoginResponse(context), "Token refreshed successfully.");
+
+            EffectivePermissions? perms = null;
+            if (context.TenantId != Guid.Empty)
+            {
+                perms = await permissionsRepository.GetForUserAsync(
+                    context.TenantId,
+                    context.UserId,
+                    context.UserType == (byte)UserType.TenantSuperAdmin,
+                    ct);
+            }
+
+            return Result<LoginResponse>.Ok(ToLoginResponse(context, perms), "Token refreshed successfully.");
         }
         catch (Exception ex) when (ex is SecurityTokenException or ArgumentException)
         {
@@ -161,12 +179,17 @@ public class AuthService(
         Subdomain = subdomain
     };
 
-    private static LoginResponse ToLoginResponse(TenantContext c) => new(
+    private static LoginResponse ToLoginResponse(TenantContext c, EffectivePermissions? perms) => new(
         c.UserId, c.Email, c.FullName, c.Role, c.UserType, c.Designation,
         c.TenantId == Guid.Empty ? null : c.TenantId,
         string.IsNullOrEmpty(c.TenantName) ? null : c.TenantName,
         string.IsNullOrEmpty(c.Subdomain) ? null : c.Subdomain,
-        c.Token, c.TokenType, c.ExpiresIn, c.RefreshToken, c.RefreshTokenExpiry);
+        c.Token, c.TokenType, c.ExpiresIn, c.RefreshToken, c.RefreshTokenExpiry,
+        perms?.DataScope ?? 0,
+        perms?.CanCreate ?? true,
+        perms?.CanEdit ?? true,
+        perms?.CanDelete ?? true,
+        perms?.Menus);
 
     private static string HashToken(string token)
     {

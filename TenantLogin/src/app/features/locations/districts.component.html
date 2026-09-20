@@ -1,0 +1,95 @@
+<header class="page-header">
+  <div class="header-row">
+    <div>
+      <h1>Districts</h1>
+      <p class="subtitle">Districts belong to a state.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openCreate()">Add district</button>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <label>Filter by state
+    <select [ngModel]="filterStateId()" (ngModelChange)="filterStateId.set($event); onFilterChange()" name="filterState">
+      <option value="">All states</option>
+      @for (s of states(); track s.id) {
+        <option [value]="s.id">{{ s.name }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="status">Loading districts…</p>
+} @else if (error()) {
+  <div class="error">{{ error() }}</div>
+} @else if (items().length === 0) {
+  <div class="empty">No districts found. <button type="button" class="btn-text" (click)="openCreate()">Add a district</button></div>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Code</th><th>State</th><th>Status</th><th class="actions-col">Actions</th></tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track item.id) {
+          <tr>
+            <td data-label="Name">{{ item.name }}</td>
+            <td data-label="Code">{{ item.code || '—' }}</td>
+            <td data-label="State">{{ item.stateName || '—' }}</td>
+            <td data-label="Status"><span class="badge" [class.active]="item.statusCode === 1">{{ item.status }}</span></td>
+            <td data-label="Actions" class="actions-cell">
+              <div class="row-actions">
+                <button type="button" class="icon-btn icon-btn-edit" title="Edit" (click)="openEdit(item)">✎</button>
+                <button type="button" class="icon-btn icon-btn-delete" title="Delete" (click)="askDelete(item)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (drawerOpen()) {
+  <div class="drawer-backdrop" (click)="closeDrawer()">
+    <aside class="drawer-panel" (click)="$event.stopPropagation()">
+      <header class="drawer-header">
+        <h2>{{ isEditing() ? 'Edit district' : 'Add district' }}</h2>
+        <button type="button" class="drawer-close" (click)="closeDrawer()" aria-label="Close">×</button>
+      </header>
+      @if (formError()) { <div class="error">{{ formError() }}</div> }
+      <form class="drawer-form" (ngSubmit)="save()">
+        <label>State
+          <select [(ngModel)]="stateId" name="stateId" required>
+            <option value="" disabled>Select state</option>
+            @for (s of states(); track s.id) {
+              <option [value]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </label>
+        <label>Name<input [(ngModel)]="name" name="name" required maxlength="200" /></label>
+        <label>Code<input [(ngModel)]="code" name="code" required maxlength="50" /></label>
+        <label>Status
+          <select [(ngModel)]="statusCode" name="statusCode">
+            <option [ngValue]="1">Active</option>
+            <option [ngValue]="2">Inactive</option>
+          </select>
+        </label>
+        <div class="drawer-actions">
+          <button type="button" class="btn-secondary" (click)="closeDrawer()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!confirmTarget()"
+  title="Delete district"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

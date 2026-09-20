@@ -8,7 +8,8 @@ public record CreateTenantUserRequest(
     string? TemporaryPassword,
     string? Designation,
     IReadOnlyList<Guid>? RoleIds,
-    IReadOnlyList<Guid>? ProjectScopeIds);
+    IReadOnlyList<Guid>? ProjectScopeIds,
+    IReadOnlyList<Guid>? DistrictScopeIds);
 
 public record UpdateTenantUserRequest(
     string FirstName,
@@ -16,7 +17,8 @@ public record UpdateTenantUserRequest(
     byte Role,
     string? Designation,
     IReadOnlyList<Guid>? RoleIds,
-    IReadOnlyList<Guid>? ProjectScopeIds);
+    IReadOnlyList<Guid>? ProjectScopeIds,
+    IReadOnlyList<Guid>? DistrictScopeIds);
 
 public record TenantUserResponse(
     Guid Id,
@@ -31,7 +33,8 @@ public record TenantUserResponse(
     DateTime? LastLoginAt,
     DateTime CreatedAt,
     IReadOnlyList<Guid> RoleIds,
-    IReadOnlyList<Guid> ProjectScopeIds);
+    IReadOnlyList<Guid> ProjectScopeIds,
+    IReadOnlyList<Guid> DistrictScopeIds);
 
 public record TenantUserListResponse(
     IEnumerable<TenantUserResponse> Items,

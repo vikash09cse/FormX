@@ -17,6 +17,7 @@ interface TenantUser {
   statusCode: number;
   roleIds: string[];
   projectScopeIds: string[];
+  districtScopeIds: string[];
 }
 
 interface UserList {
@@ -36,6 +37,12 @@ interface ProjectItem {
   projectName: string;
 }
 
+interface DistrictItem {
+  id: string;
+  name: string;
+  stateName?: string | null;
+}
+
 @Component({
   selector: 'app-users',
   standalone: true,
@@ -50,6 +57,7 @@ export class UsersComponent implements OnInit {
   readonly users = signal<TenantUser[]>([]);
   readonly roles = signal<RoleItem[]>([]);
   readonly projects = signal<ProjectItem[]>([]);
+  readonly districts = signal<DistrictItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly drawerOpen = signal(false);
@@ -68,6 +76,7 @@ export class UsersComponent implements OnInit {
   temporaryPassword = '';
   selectedRoleIds = new Set<string>();
   selectedProjectScopeIds = new Set<string>();
+  selectedDistrictScopeIds = new Set<string>();
 
   readonly isEditing = computed(() => this.editingUser() !== null);
 
@@ -82,6 +91,7 @@ export class UsersComponent implements OnInit {
     this.currentUserId.set(this.auth.currentUser()?.userId ?? null);
     this.loadRoles();
     this.loadProjects();
+    this.loadDistricts();
     this.loadUsers();
   }
 
@@ -104,6 +114,13 @@ export class UsersComponent implements OnInit {
     return names.length ? names.join(', ') : '—';
   }
 
+  districtNames(user: TenantUser): string {
+    const names = (user.districtScopeIds ?? [])
+      .map(id => this.districts().find(d => d.id === id)?.name)
+      .filter((n): n is string => !!n);
+    return names.length ? names.join(', ') : '—';
+  }
+
   loadRoles() {
     this.api.get<ApiResult<RoleItem[]>>('/roles').subscribe({
       next: res => this.roles.set((res.data ?? []).map(r => ({ id: r.id, name: r.name })))
@@ -113,6 +130,15 @@ export class UsersComponent implements OnInit {
   loadProjects() {
     this.api.get<ApiResult<ProjectItem[]>>('/projects').subscribe({
       next: res => this.projects.set((res.data ?? []).map(p => ({ id: p.id, projectName: p.projectName })))
+    });
+  }
+
+  loadDistricts() {
+    this.api.get<ApiResult<{ id: string; name: string; stateName?: string | null }[]>>('/locations/districts').subscribe({
+      next: res =>
+        this.districts.set(
+          (res.data ?? []).map(d => ({ id: d.id, name: d.name, stateName: d.stateName }))
+        )
     });
   }
 
@@ -149,6 +175,7 @@ export class UsersComponent implements OnInit {
     this.temporaryPassword = '';
     this.selectedRoleIds = new Set(user.roleIds ?? []);
     this.selectedProjectScopeIds = new Set(user.projectScopeIds ?? []);
+    this.selectedDistrictScopeIds = new Set(user.districtScopeIds ?? []);
     this.formError.set('');
     this.drawerOpen.set(true);
   }
@@ -169,6 +196,7 @@ export class UsersComponent implements OnInit {
     this.temporaryPassword = '';
     this.selectedRoleIds = new Set();
     this.selectedProjectScopeIds = new Set();
+    this.selectedDistrictScopeIds = new Set();
     this.formError.set('');
   }
 
@@ -188,6 +216,19 @@ export class UsersComponent implements OnInit {
 
   isProjectSelected(id: string) {
     return this.selectedProjectScopeIds.has(id);
+  }
+
+  toggleDistrict(id: string, checked: boolean) {
+    if (checked) this.selectedDistrictScopeIds.add(id);
+    else this.selectedDistrictScopeIds.delete(id);
+  }
+
+  isDistrictSelected(id: string) {
+    return this.selectedDistrictScopeIds.has(id);
+  }
+
+  districtLabel(d: DistrictItem): string {
+    return d.stateName ? `${d.name} (${d.stateName})` : d.name;
   }
 
   submitUser() {
@@ -215,7 +256,8 @@ export class UsersComponent implements OnInit {
       lastName: this.lastName.trim(),
       role: this.roleCode,
       roleIds: [...this.selectedRoleIds],
-      projectScopeIds: [...this.selectedProjectScopeIds]
+      projectScopeIds: [...this.selectedProjectScopeIds],
+      districtScopeIds: [...this.selectedDistrictScopeIds]
     };
     if (this.designation.trim()) {
       body['designation'] = this.designation.trim();
@@ -251,7 +293,8 @@ export class UsersComponent implements OnInit {
       role: this.roleCode,
       designation: this.designation.trim() || null,
       roleIds: [...this.selectedRoleIds],
-      projectScopeIds: [...this.selectedProjectScopeIds]
+      projectScopeIds: [...this.selectedProjectScopeIds],
+      districtScopeIds: [...this.selectedDistrictScopeIds]
     };
 
     this.api.put<ApiResult<TenantUser>>(`/users/${user.id}`, body).subscribe({

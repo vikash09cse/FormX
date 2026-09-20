@@ -1,9 +1,14 @@
-<header class="page-header">
-  <a [routerLink]="backLink()" class="back-link">← Back to entries</a>
+<header class="page-header fill-header">
+  <a [routerLink]="backLink()" class="back-link">{{ backLabel() }}</a>
   <div class="header-row">
-    <div>
-      <h1>{{ isEditing() ? 'Edit entry' : 'Add new entry' }}</h1>
-      <p class="subtitle">{{ definition()?.name }}</p>
+    <div class="header-main">
+      <h1>{{ pageTitle() }}</h1>
+      <div class="header-meta">
+        <p class="subtitle" [attr.title]="definition()?.name">{{ definition()?.name }}</p>
+        @if (definition()?.projectName) {
+          <span class="meta-chip">{{ definition()!.projectName }}</span>
+        }
+      </div>
     </div>
   </div>
 </header>
@@ -18,17 +23,89 @@
   }
 
   <form class="fill-form" (ngSubmit)="save()">
-    @if (definition()?.projectName) {
-      <p class="project-readonly">Project: <strong>{{ definition()!.projectName }}</strong></p>
+    @if (collectLocation()) {
+      <section class="group-block location-block">
+        <div class="group-heading">
+          <h2>Where was this collected?</h2>
+          <p class="group-hint">Capture location for this entry (separate from any State/District questions on the form).</p>
+        </div>
+        <div class="fields-grid">
+          <div class="field-item col-md-6" data-field-key="stateId">
+            <label class="field-label">
+              <span class="field-label-text">State <span class="required" aria-hidden="true">*</span></span>
+              <select
+                [(ngModel)]="stateId"
+                name="stateId"
+                required
+                [class.invalid]="fieldError('stateId')"
+                (ngModelChange)="onStateChange()"
+              >
+                <option value="">Select state…</option>
+                @for (s of states(); track s.id) {
+                  <option [ngValue]="s.id">{{ s.name }}</option>
+                }
+              </select>
+            </label>
+            @if (fieldError('stateId'); as msg) {
+              <p class="field-error">{{ msg }}</p>
+            }
+          </div>
+          <div class="field-item col-md-6" data-field-key="districtId">
+            <label class="field-label">
+              <span class="field-label-text">District <span class="required" aria-hidden="true">*</span></span>
+              <select
+                [(ngModel)]="districtId"
+                name="districtId"
+                required
+                [disabled]="!stateId"
+                [class.invalid]="fieldError('districtId')"
+                (ngModelChange)="onDistrictChange()"
+              >
+                <option value="">Select district…</option>
+                @for (d of districts(); track d.id) {
+                  <option [ngValue]="d.id">{{ d.name }}</option>
+                }
+              </select>
+            </label>
+            @if (fieldError('districtId'); as msg) {
+              <p class="field-error">{{ msg }}</p>
+            }
+          </div>
+          <div class="field-item col-md-6">
+            <label class="field-label">
+              <span class="field-label-text">Block</span>
+              <select [(ngModel)]="blockId" name="blockId" [disabled]="!districtId" (ngModelChange)="onBlockChange()">
+                <option value="">Select block…</option>
+                @for (b of blocks(); track b.id) {
+                  <option [ngValue]="b.id">{{ b.name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+          <div class="field-item col-md-6">
+            <label class="field-label">
+              <span class="field-label-text">Village</span>
+              <select [(ngModel)]="villageId" name="villageId" [disabled]="!blockId">
+                <option value="">Select village…</option>
+                @for (v of villages(); track v.id) {
+                  <option [ngValue]="v.id">{{ v.name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
     }
 
     @for (g of definition()!.groups; track g.id) {
       <section class="group-block">
-        <h2>{{ g.groupName }}</h2>
+        <div class="group-heading">
+          <h2>{{ g.groupName }}</h2>
+        </div>
         <div class="fields-grid">
           @for (f of g.fields; track f.id) {
             @if (isVisible(f)) {
-              <div [class]="'field-item ' + layoutClasses(f)">
+              <div [class]="'field-item ' + layoutClasses(f)" [attr.data-field-key]="f.id">
                 @if (f.controlType === 7) {
                   <p class="label-only">{{ f.controlLabel }}</p>
                 } @else {
@@ -41,7 +118,12 @@
                     </span>
                     @switch (f.controlType) {
                       @case (1) {
-                        <select [(ngModel)]="values[f.id]" [name]="'f' + f.id">
+                        <select
+                          [(ngModel)]="values[f.id]"
+                          [name]="'f' + f.id"
+                          [class.invalid]="fieldError(f.id)"
+                          (ngModelChange)="onFieldValueChange(f.id)"
+                        >
                           <option value="">Select…</option>
                           @for (o of f.options; track o.id) {
                             <option [ngValue]="o.optionValue">{{ o.optionText }}</option>
@@ -49,17 +131,23 @@
                         </select>
                       }
                       @case (2) {
-                        <div class="option-list">
+                        <div class="option-list" [class.invalid-group]="fieldError(f.id)">
                           @for (o of f.options; track o.id) {
                             <label class="check">
-                              <input type="radio" [name]="'r' + f.id" [value]="o.optionValue" [(ngModel)]="values[f.id]" />
+                              <input
+                                type="radio"
+                                [name]="'r' + f.id"
+                                [value]="o.optionValue"
+                                [(ngModel)]="values[f.id]"
+                                (ngModelChange)="onFieldValueChange(f.id)"
+                              />
                               <span>{{ o.optionText }}</span>
                             </label>
                           }
                         </div>
                       }
                       @case (3) {
-                        <div class="option-list">
+                        <div class="option-list" [class.invalid-group]="fieldError(f.id)">
                           @for (o of f.options; track o.id) {
                             <label class="check">
                               <input
@@ -73,32 +161,68 @@
                         </div>
                       }
                       @case (5) {
-                        <input type="text" [(ngModel)]="values[f.id]" [name]="'f' + f.id" placeholder="File path or name" />
+                        <input
+                          type="text"
+                          [(ngModel)]="values[f.id]"
+                          [name]="'f' + f.id"
+                          placeholder="File path or name"
+                          [class.invalid]="fieldError(f.id)"
+                          (ngModelChange)="onFieldValueChange(f.id)"
+                        />
                       }
                       @case (6) {
-                        <div class="option-list">
+                        <div class="option-list" [class.invalid-group]="fieldError(f.id)">
                           @for (o of f.options; track o.id) {
                             <label class="check">
-                              <input type="radio" [name]="'c' + f.id" [value]="o.optionValue" [(ngModel)]="values[f.id]" />
+                              <input
+                                type="radio"
+                                [name]="'c' + f.id"
+                                [value]="o.optionValue"
+                                [(ngModel)]="values[f.id]"
+                                (ngModelChange)="onFieldValueChange(f.id)"
+                              />
                               <span>{{ o.optionText }}</span>
                             </label>
                           }
                         </div>
                       }
                       @case (8) {
-                        <input type="email" [(ngModel)]="values[f.id]" [name]="'f' + f.id" [attr.maxlength]="f.controlMaxLength || null" />
+                        <input
+                          type="email"
+                          [(ngModel)]="values[f.id]"
+                          [name]="'f' + f.id"
+                          [attr.maxlength]="f.controlMaxLength || null"
+                          [class.invalid]="fieldError(f.id)"
+                          (ngModelChange)="onFieldValueChange(f.id)"
+                        />
                       }
                       @case (9) {
-                        <input type="date" [(ngModel)]="values[f.id]" [name]="'f' + f.id" />
+                        <input
+                          type="date"
+                          [(ngModel)]="values[f.id]"
+                          [name]="'f' + f.id"
+                          [class.invalid]="fieldError(f.id)"
+                          (ngModelChange)="onFieldValueChange(f.id)"
+                        />
                       }
                       @default {
-                        <input type="text" [(ngModel)]="values[f.id]" [name]="'f' + f.id" [attr.maxlength]="f.controlMaxLength || null" />
+                        <input
+                          type="text"
+                          [(ngModel)]="values[f.id]"
+                          [name]="'f' + f.id"
+                          [attr.maxlength]="f.controlMaxLength || null"
+                          [class.invalid]="fieldError(f.id)"
+                          (ngModelChange)="onFieldValueChange(f.id)"
+                        />
                       }
                     }
                     @if (f.controlNotes) {
                       <span class="field-hint">{{ f.controlNotes }}</span>
                     }
                   </label>
+                  @if (fieldError(f.id); as msg) {
+                    <p class="field-error">{{ msg }}</p>
+                  }
                 }
               </div>
             }
@@ -107,6 +231,7 @@
       </section>
     }
 
+    <div class="form-actions-spacer" aria-hidden="true"></div>
     <div class="form-actions">
       <a class="btn-secondary" [routerLink]="backLink()">Cancel</a>
       <button type="submit" class="btn-primary" [disabled]="saving()">

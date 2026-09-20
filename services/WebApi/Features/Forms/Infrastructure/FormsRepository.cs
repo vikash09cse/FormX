@@ -15,6 +15,7 @@ public class FormRow
     public string? Description { get; set; }
     public byte Status { get; set; }
     public int DisplayOrder { get; set; }
+    public bool CollectLocation { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -77,8 +78,8 @@ public interface IFormsRepository
     Task<IEnumerable<FormRow>> GetFormsAsync(Guid tenantId, CancellationToken ct);
     Task<FormRow?> GetFormByIdAsync(Guid tenantId, Guid formId, CancellationToken ct);
     Task<bool> FormNameExistsAsync(Guid tenantId, string name, Guid? excludeId, CancellationToken ct);
-    Task<Guid> CreateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, Guid createdBy, CancellationToken ct);
-    Task UpdateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, Guid updatedBy, CancellationToken ct);
+    Task<Guid> CreateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, bool collectLocation, Guid createdBy, CancellationToken ct);
+    Task UpdateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, bool collectLocation, Guid updatedBy, CancellationToken ct);
     Task DeleteFormAsync(Guid tenantId, Guid formId, Guid updatedBy, CancellationToken ct);
     Task<IReadOnlyList<Guid>> GetFormRoleIdsAsync(Guid tenantId, Guid formId, CancellationToken ct);
     Task SetFormRolesAsync(Guid tenantId, Guid formId, IEnumerable<Guid> roleIds, Guid createdBy, CancellationToken ct);
@@ -117,6 +118,33 @@ public interface IFormsRepository
         CancellationToken ct);
 
     Task<IEnumerable<ValidationRegexPresetRow>> GetRegexPresetsAsync(CancellationToken ct);
+
+    Task<(FormFollowupConfigRow? Config, FormFollowupUsedAsRow? UsedAs)> GetFollowupConfigAsync(
+        Guid tenantId, Guid formId, CancellationToken ct);
+
+    Task<Guid?> SaveFollowupConfigAsync(
+        Guid tenantId, Guid primaryFormId, Guid? followUpFormId, bool allowMultiple, Guid actorId, CancellationToken ct);
+}
+
+public class FormFollowupConfigRow
+{
+    public Guid FormFollowupConfigId { get; set; }
+    public Guid TenantId { get; set; }
+    public Guid PrimaryFormId { get; set; }
+    public Guid FollowupFormId { get; set; }
+    public string? PrimaryFormName { get; set; }
+    public string? FollowupFormName { get; set; }
+    public bool AllowMultiple { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class FormFollowupUsedAsRow
+{
+    public Guid FormFollowupConfigId { get; set; }
+    public Guid PrimaryFormId { get; set; }
+    public string? PrimaryFormName { get; set; }
+    public Guid FollowupFormId { get; set; }
 }
 
 public class FormsRepository(DbHelper dbHelper) : IFormsRepository
@@ -140,19 +168,19 @@ public class FormsRepository(DbHelper dbHelper) : IFormsRepository
         return count > 0;
     }
 
-    public async Task<Guid> CreateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, Guid createdBy, CancellationToken ct)
+    public async Task<Guid> CreateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, bool collectLocation, Guid createdBy, CancellationToken ct)
     {
         using var conn = dbHelper.GetConnection();
         return await conn.ExecuteScalarAsync<Guid>("dbo.sp_form_create",
-            new { formid = formId, tenantid = tenantId, projectid = projectId, name, description, status, displayorder = displayOrder, createdby = createdBy },
+            new { formid = formId, tenantid = tenantId, projectid = projectId, name, description, status, displayorder = displayOrder, collectlocation = collectLocation, createdby = createdBy },
             commandType: CommandType.StoredProcedure);
     }
 
-    public async Task UpdateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, Guid updatedBy, CancellationToken ct)
+    public async Task UpdateFormAsync(Guid tenantId, Guid formId, Guid projectId, string name, string? description, byte status, int displayOrder, bool collectLocation, Guid updatedBy, CancellationToken ct)
     {
         using var conn = dbHelper.GetConnection();
         await conn.ExecuteAsync("dbo.sp_form_update",
-            new { tenantid = tenantId, formid = formId, projectid = projectId, name, description, status, displayorder = displayOrder, updatedby = updatedBy },
+            new { tenantid = tenantId, formid = formId, projectid = projectId, name, description, status, displayorder = displayOrder, collectlocation = collectLocation, updatedby = updatedBy },
             commandType: CommandType.StoredProcedure);
     }
 
@@ -299,6 +327,36 @@ public class FormsRepository(DbHelper dbHelper) : IFormsRepository
         using var conn = dbHelper.GetConnection();
         return await conn.QueryAsync<ValidationRegexPresetRow>(
             "dbo.sp_validation_regex_preset_get_list",
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<(FormFollowupConfigRow? Config, FormFollowupUsedAsRow? UsedAs)> GetFollowupConfigAsync(
+        Guid tenantId, Guid formId, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        using var multi = await conn.QueryMultipleAsync(
+            "dbo.sp_form_followup_config_get",
+            new { tenantid = tenantId, formid = formId },
+            commandType: CommandType.StoredProcedure);
+        var config = await multi.ReadFirstOrDefaultAsync<FormFollowupConfigRow>();
+        var usedAs = await multi.ReadFirstOrDefaultAsync<FormFollowupUsedAsRow>();
+        return (config, usedAs);
+    }
+
+    public async Task<Guid?> SaveFollowupConfigAsync(
+        Guid tenantId, Guid primaryFormId, Guid? followUpFormId, bool allowMultiple, Guid actorId, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        return await conn.ExecuteScalarAsync<Guid?>(
+            "dbo.sp_form_followup_config_save",
+            new
+            {
+                tenantid = tenantId,
+                primaryformid = primaryFormId,
+                followupformid = followUpFormId,
+                allowmultiple = allowMultiple,
+                actorid = actorId
+            },
             commandType: CommandType.StoredProcedure);
     }
 

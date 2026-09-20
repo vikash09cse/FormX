@@ -1,10 +1,20 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { LoginResponse } from '../models/api.models';
 import { AuthService } from './auth.service';
 
-/** Default post-login landing path. */
-export function tenantHomePath(): string {
-  return '/dashboard';
+function menuFallbackPath(user: LoginResponse): string {
+  const menus = user.menus ?? [];
+  if (menus.includes('dashboard')) return '/dashboard';
+  if (menus.includes('my-forms')) return '/my-forms';
+  return '/profile';
+}
+
+/** Default post-login landing path for the current user. */
+export function tenantHomePath(user?: LoginResponse | null): string {
+  if (!user) return '/dashboard';
+  if (user.role === 'TenantSuperAdmin') return '/dashboard';
+  return menuFallbackPath(user);
 }
 
 /**
@@ -28,7 +38,7 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (auth.isLoggedIn()) {
-    return router.createUrlTree([tenantHomePath()]);
+    return router.createUrlTree([tenantHomePath(auth.currentUser())]);
   }
 
   // Avoid guest↔auth loops when a dead JWT is still stored.
@@ -41,5 +51,22 @@ export const tenantSuperAdminGuard: CanActivateFn = () => {
   const router = inject(Router);
   const role = auth.currentUser()?.role;
   if (role === 'TenantSuperAdmin') return true;
-  return router.createUrlTree(['/my-forms']);
+  const user = auth.currentUser();
+  return router.createUrlTree([user ? menuFallbackPath(user) : '/my-forms']);
 };
+
+/** Allow TenantSuperAdmin or staff whose role menus include the key. */
+export function menuGuard(menuKey: string): CanActivateFn {
+  return () => {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    const user = auth.currentUser();
+    if (!user) {
+      auth.discardInvalidSession();
+      return router.createUrlTree(['/login']);
+    }
+    if (user.role === 'TenantSuperAdmin') return true;
+    if ((user.menus ?? []).includes(menuKey)) return true;
+    return router.createUrlTree([menuFallbackPath(user)]);
+  };
+}

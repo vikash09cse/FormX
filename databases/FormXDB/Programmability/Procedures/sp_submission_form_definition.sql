@@ -6,7 +6,7 @@ BEGIN
     SET NOCOUNT ON;
 
     -- 1: form
-    SELECT f.formid, f.name, f.description, f.projectid, p.projectname
+    SELECT f.formid, f.name, f.description, f.projectid, p.projectname, f.collectlocation
     FROM dbo.forms f
     LEFT JOIN dbo.projects p ON p.projectid = f.projectid AND p.tenantid = f.tenantid AND p.isdeleted = 0
     WHERE f.tenantid = @tenantid AND f.formid = @formid AND f.isdeleted = 0 AND f.status = 1;

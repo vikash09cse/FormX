@@ -62,4 +62,26 @@ public class SubmissionsController(SubmissionsService service) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct) =>
         (await service.DeleteAsync(id, ct)).ToActionResult();
+
+    [HttpGet("{parentId:guid}/followups")]
+    public async Task<IActionResult> GetFollowups(Guid parentId, CancellationToken ct) =>
+        (await service.GetFollowupsAsync(parentId, ct)).ToActionResult();
+
+    [HttpPost("{parentId:guid}/followups")]
+    public async Task<IActionResult> CreateFollowup(
+        Guid parentId, [FromBody] CreateFollowupRequest request, CancellationToken ct) =>
+        (await service.CreateFollowupAsync(parentId, request, ct)).ToActionResult();
+
+    [HttpGet("{parentId:guid}/followups/{followUpId:guid}")]
+    public async Task<IActionResult> GetFollowup(Guid parentId, Guid followUpId, CancellationToken ct) =>
+        (await service.GetFollowupAsync(parentId, followUpId, ct)).ToActionResult();
+
+    [HttpPut("{parentId:guid}/followups/{followUpId:guid}")]
+    public async Task<IActionResult> UpdateFollowup(
+        Guid parentId, Guid followUpId, [FromBody] UpdateSubmissionRequest request, CancellationToken ct) =>
+        (await service.UpdateFollowupAsync(parentId, followUpId, request, ct)).ToActionResult();
+
+    [HttpDelete("{parentId:guid}/followups/{followUpId:guid}")]
+    public async Task<IActionResult> DeleteFollowup(Guid parentId, Guid followUpId, CancellationToken ct) =>
+        (await service.DeleteFollowupAsync(parentId, followUpId, ct)).ToActionResult();
 }

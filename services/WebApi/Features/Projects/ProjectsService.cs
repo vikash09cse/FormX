@@ -1,18 +1,28 @@
 using SharedKernel.Enums;
 using SharedKernel.Utilities;
 using SharedKernel.Utilities.Extensions;
+using WebApi.Features.Permissions;
 using WebApi.Features.Projects.Infrastructure;
 
 namespace WebApi.Features.Projects;
 
-public class ProjectsService(IProjectsRepository repository, IHttpContextAccessor httpContextAccessor)
+public class ProjectsService(
+    IProjectsRepository repository,
+    MenuAccessService menuAccess,
+    IHttpContextAccessor httpContextAccessor)
 {
-    private Result<T>? RequireTenant<T>()
+    private async Task<Result<T>?> RequireProjectsMenu<T>(CancellationToken ct)
     {
         var ctx = httpContextAccessor.HttpContext?.TryGetTenantContext();
         if (ctx == null || !ctx.IsValidForTenantScope())
             return Result<T>.Fail(ErrorCode.Forbidden, "Tenant context is required.");
-        return null;
+        if (ctx.UserType == (byte)UserType.TenantSuperAdmin)
+            return null;
+        var access = await menuAccess.RequireMenuAsync(MenuKeys.Projects, ct);
+        if (access.Success) return null;
+        // Users admin also needs project list for scopes
+        access = await menuAccess.RequireMenuAsync(MenuKeys.Users, ct);
+        return access.Success ? null : Result<T>.Fail(ErrorCode.Forbidden, "You do not have access to this feature.");
     }
 
     private Guid TenantId => httpContextAccessor.GetTenantContext().TenantId;
@@ -20,7 +30,7 @@ public class ProjectsService(IProjectsRepository repository, IHttpContextAccesso
 
     public async Task<Result<IEnumerable<ProjectResponse>>> GetAllAsync(CancellationToken ct)
     {
-        var err = RequireTenant<IEnumerable<ProjectResponse>>();
+        var err = await RequireProjectsMenu<IEnumerable<ProjectResponse>>(ct);
         if (err != null) return err;
         var rows = await repository.GetListAsync(TenantId, ct);
         return Result<IEnumerable<ProjectResponse>>.Ok(rows.Select(Map));
@@ -28,7 +38,7 @@ public class ProjectsService(IProjectsRepository repository, IHttpContextAccesso
 
     public async Task<Result<ProjectResponse>> CreateAsync(SaveProjectRequest request, CancellationToken ct)
     {
-        var err = RequireTenant<ProjectResponse>();
+        var err = await RequireProjectsMenu<ProjectResponse>(ct);
         if (err != null) return err;
 
         if (string.IsNullOrWhiteSpace(request.ProjectName) || request.ProjectName.Trim().Length < 2)
@@ -50,7 +60,7 @@ public class ProjectsService(IProjectsRepository repository, IHttpContextAccesso
 
     public async Task<Result<ProjectResponse>> UpdateAsync(Guid id, SaveProjectRequest request, CancellationToken ct)
     {
-        var err = RequireTenant<ProjectResponse>();
+        var err = await RequireProjectsMenu<ProjectResponse>(ct);
         if (err != null) return err;
 
         if (string.IsNullOrWhiteSpace(request.ProjectName) || request.ProjectName.Trim().Length < 2)
@@ -75,7 +85,7 @@ public class ProjectsService(IProjectsRepository repository, IHttpContextAccesso
 
     public async Task<Result<bool>> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var err = RequireTenant<bool>();
+        var err = await RequireProjectsMenu<bool>(ct);
         if (err != null) return err;
 
         var existing = await repository.GetByIdAsync(TenantId, id, ct);
