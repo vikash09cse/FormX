@@ -1,0 +1,107 @@
+<header class="page-header">
+  <a [routerLink]="['/my-forms', formId()]" class="back-link">← Back to entries</a>
+  <div class="header-row">
+    <div class="title-block">
+      <div class="title-row">
+        <h1>Follow-ups</h1>
+        @if (config()?.followUpFormName) {
+          <p class="form-label">Form: {{ config()!.followUpFormName }}</p>
+        }
+      </div>
+    </div>
+    <div class="header-actions">
+      @if (canAddFollowup()) {
+        <a
+          class="btn-primary"
+          [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'followups', 'new']"
+        >
+          Add follow-up
+        </a>
+      }
+    </div>
+  </div>
+</header>
+
+@if (loading()) {
+  <p class="status">Loading…</p>
+} @else if (error() && !config()) {
+  <div class="error">{{ error() }}</div>
+} @else {
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (followups().length === 0) {
+    <div class="empty">
+      <p>No follow-ups yet.</p>
+      @if (canAddFollowup()) {
+        <a
+          class="btn-text"
+          [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'followups', 'new']"
+        >
+          Add the first follow-up
+        </a>
+      }
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Submitted</th>
+            @for (c of columns(); track c.fieldId) {
+              <th>{{ c.label }}</th>
+            }
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of followups(); track f.id) {
+            <tr>
+              <td data-label="Submitted">{{ formatDate(f.submittedAt) }}</td>
+              @for (c of columns(); track c.fieldId) {
+                <td [attr.data-label]="c.label">{{ cellValue(f, c.fieldId) }}</td>
+              }
+              <td data-label="Actions" class="actions-cell">
+                <div class="row-actions">
+                  <a
+                    class="btn-secondary"
+                    [routerLink]="[
+                      '/my-forms',
+                      formId(),
+                      'entries',
+                      submissionId(),
+                      'followups',
+                      f.id,
+                      'edit'
+                    ]"
+                  >
+                    Edit
+                  </a>
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-delete"
+                    title="Delete"
+                    (click)="askDelete(f)"
+                  >
+                    🗑
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete follow-up?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

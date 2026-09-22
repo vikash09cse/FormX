@@ -15,6 +15,7 @@ interface TenantUser {
   roleCode: number;
   status: string;
   statusCode: number;
+  password?: string | null;
   roleIds: string[];
   projectScopeIds: string[];
   districtScopeIds: string[];
@@ -247,6 +248,11 @@ export class UsersComponent implements OnInit {
       return;
     }
 
+    if (!this.temporaryPassword.trim() || this.temporaryPassword.trim().length < 6) {
+      this.formError.set('Password is required (minimum 6 characters).');
+      return;
+    }
+
     this.saving.set(true);
     this.formError.set('');
 
@@ -255,15 +261,13 @@ export class UsersComponent implements OnInit {
       firstName: this.firstName.trim(),
       lastName: this.lastName.trim(),
       role: this.roleCode,
+      temporaryPassword: this.temporaryPassword.trim(),
       roleIds: [...this.selectedRoleIds],
       projectScopeIds: [...this.selectedProjectScopeIds],
       districtScopeIds: [...this.selectedDistrictScopeIds]
     };
     if (this.designation.trim()) {
       body['designation'] = this.designation.trim();
-    }
-    if (this.temporaryPassword.trim()) {
-      body['temporaryPassword'] = this.temporaryPassword.trim();
     }
 
     this.api.post<ApiResult<TenantUser>>('/users', body).subscribe({
@@ -284,10 +288,7 @@ export class UsersComponent implements OnInit {
     const user = this.editingUser();
     if (!user) return;
 
-    this.saving.set(true);
-    this.formError.set('');
-
-    const body = {
+    const body: Record<string, unknown> = {
       firstName: this.firstName.trim(),
       lastName: this.lastName.trim(),
       role: this.roleCode,
@@ -296,6 +297,18 @@ export class UsersComponent implements OnInit {
       projectScopeIds: [...this.selectedProjectScopeIds],
       districtScopeIds: [...this.selectedDistrictScopeIds]
     };
+
+    const newPassword = this.temporaryPassword.trim();
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        this.formError.set('Password must be at least 6 characters.');
+        return;
+      }
+      body['temporaryPassword'] = newPassword;
+    }
+
+    this.saving.set(true);
+    this.formError.set('');
 
     this.api.put<ApiResult<TenantUser>>(`/users/${user.id}`, body).subscribe({
       next: () => {

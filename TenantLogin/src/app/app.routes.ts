@@ -58,6 +58,12 @@ export const routes: Routes = [
           import('./features/my-forms/my-form-fill.component').then(m => m.MyFormFillComponent)
       },
       {
+        path: 'my-forms/:formId/entries/:submissionId/followups',
+        canActivate: [menuGuard('my-forms')],
+        loadComponent: () =>
+          import('./features/my-forms/my-form-followups.component').then(m => m.MyFormFollowupsComponent)
+      },
+      {
         path: 'my-forms/:formId/entries/:submissionId/edit',
         canActivate: [menuGuard('my-forms')],
         loadComponent: () =>

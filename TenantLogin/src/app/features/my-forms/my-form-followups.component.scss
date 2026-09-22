@@ -1,0 +1,122 @@
+.page-header { margin-bottom: 1.25rem; }
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  color: #0f766e;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.back-link:hover { text-decoration: underline; }
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem 0.85rem;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  color: #0f172a;
+}
+.form-label {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+.btn-primary,
+.btn-secondary,
+.btn-text {
+  border: none;
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-primary { background: #0f766e; color: #fff; }
+.btn-secondary { background: #f1f5f9; color: #334155; }
+.btn-text {
+  background: transparent;
+  color: #0f766e;
+  padding: 0;
+  margin-top: 0.5rem;
+}
+.status { color: #64748b; }
+.error {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+.empty {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  color: #64748b;
+  text-align: center;
+}
+.table-wrap {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th,
+td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f8fafc;
+}
+.actions-col { width: 1%; white-space: nowrap; }
+.actions-cell { white-space: nowrap; }
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.icon-btn-delete:hover { border-color: #fecaca; background: #fef2f2; }

@@ -14,7 +14,8 @@ BEGIN
         u.usertype AS role,
         u.userstatus AS status,
         u.lastloginat,
-        u.createdat
+        u.createdat,
+        u.initialpassword
     FROM dbo.users u
     WHERE u.tenantid = @tenantid
       AND u.userid = @userid

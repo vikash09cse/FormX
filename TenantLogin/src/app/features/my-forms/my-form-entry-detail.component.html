@@ -12,6 +12,14 @@
       >
         Edit entry
       </a>
+      @if (followupConfig()) {
+        <a
+          class="btn-secondary"
+          [routerLink]="['/my-forms', formId(), 'entries', submissionId(), 'followups']"
+        >
+          Follow-ups
+        </a>
+      }
       @if (canAddFollowup()) {
         <a
           class="btn-primary"
@@ -49,7 +57,7 @@
     </dl>
   </section>
 
-  <section class="detail-section">
+  <section class="detail-section" id="followups">
     <div class="section-header">
       <h2>Follow-ups</h2>
       @if (followupConfig()?.followUpFormName) {

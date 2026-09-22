@@ -23,6 +23,7 @@ BEGIN
         u.userstatus AS status,
         u.lastloginat,
         u.createdat,
+        u.initialpassword,
         COUNT(*) OVER() AS totalcount
     FROM dbo.users u
     WHERE u.tenantid = @tenantid

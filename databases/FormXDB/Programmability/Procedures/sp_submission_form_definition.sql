@@ -6,9 +6,20 @@ BEGIN
     SET NOCOUNT ON;
 
     -- 1: form
-    SELECT f.formid, f.name, f.description, f.projectid, p.projectname, f.collectlocation
+    SELECT
+        f.formid,
+        f.name,
+        f.description,
+        f.projectid,
+        p.projectname,
+        f.collectlocation,
+        CAST(CASE WHEN c.followupformid IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS hasfollowup
     FROM dbo.forms f
     LEFT JOIN dbo.projects p ON p.projectid = f.projectid AND p.tenantid = f.tenantid AND p.isdeleted = 0
+    LEFT JOIN dbo.form_followup_configs c
+        ON c.primaryformid = f.formid
+       AND c.tenantid = f.tenantid
+       AND c.isdeleted = 0
     WHERE f.tenantid = @tenantid AND f.formid = @formid AND f.isdeleted = 0 AND f.status = 1;
 
     -- 2: groups

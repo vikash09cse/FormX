@@ -92,6 +92,16 @@
             >
               <mat-icon>visibility</mat-icon>
             </a>
+            @if (hasFollowUp()) {
+              <a
+                mat-icon-button
+                color="primary"
+                title="Follow up"
+                [routerLink]="['/my-forms', formId(), 'entries', s.id, 'followups']"
+              >
+                <mat-icon>playlist_add</mat-icon>
+              </a>
+            }
             @if (canEdit()) {
               <a
                 mat-icon-button

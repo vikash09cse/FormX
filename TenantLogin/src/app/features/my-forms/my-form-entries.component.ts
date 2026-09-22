@@ -61,6 +61,7 @@ export class MyFormEntriesComponent implements OnInit {
 
   readonly formId = signal('');
   readonly formName = signal('Form');
+  readonly hasFollowUp = signal(false);
   readonly columns = signal<ListColumn[]>([]);
   readonly items = signal<SubmissionItem[]>([]);
   readonly totalCount = signal(0);
@@ -99,9 +100,15 @@ export class MyFormEntriesComponent implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('formId') ?? '';
     this.formId.set(id);
-    this.api.get<ApiResult<{ name: string }>>(`/submissions/forms/${id}/definition`).subscribe({
-      next: res => this.formName.set(res.data?.name ?? 'Form'),
-      error: () => this.formName.set('Form')
+    this.api.get<ApiResult<{ name: string; hasFollowUp?: boolean }>>(`/submissions/forms/${id}/definition`).subscribe({
+      next: res => {
+        this.formName.set(res.data?.name ?? 'Form');
+        this.hasFollowUp.set(!!res.data?.hasFollowUp);
+      },
+      error: () => {
+        this.formName.set('Form');
+        this.hasFollowUp.set(false);
+      }
     });
 
     this.searchInput$.pipe(

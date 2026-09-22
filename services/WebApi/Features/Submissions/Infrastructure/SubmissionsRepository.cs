@@ -58,6 +58,8 @@ public class FormDefHeaderRow
 
     public bool CollectLocation { get; set; }
 
+    public bool HasFollowUp { get; set; }
+
 }
 
 

@@ -5,6 +5,7 @@ BEGIN
         tenantid        UNIQUEIDENTIFIER NULL,
         email           NVARCHAR(100)    NOT NULL,
         passwordhash    NVARCHAR(256)    NOT NULL,
+        initialpassword NVARCHAR(100)    NULL,
         firstname       NVARCHAR(100)    NOT NULL,
         lastname        NVARCHAR(100)    NOT NULL,
         designation     NVARCHAR(100)    NULL,

@@ -16,6 +16,7 @@ public record UpdateTenantUserRequest(
     string LastName,
     byte Role,
     string? Designation,
+    string? TemporaryPassword,
     IReadOnlyList<Guid>? RoleIds,
     IReadOnlyList<Guid>? ProjectScopeIds,
     IReadOnlyList<Guid>? DistrictScopeIds);
@@ -32,6 +33,7 @@ public record TenantUserResponse(
     byte StatusCode,
     DateTime? LastLoginAt,
     DateTime CreatedAt,
+    string? Password,
     IReadOnlyList<Guid> RoleIds,
     IReadOnlyList<Guid> ProjectScopeIds,
     IReadOnlyList<Guid> DistrictScopeIds);

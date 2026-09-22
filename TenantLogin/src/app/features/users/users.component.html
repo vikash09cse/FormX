@@ -24,6 +24,7 @@
         <tr>
           <th>Name</th>
           <th>Email</th>
+          <th>Password</th>
           <th>System role</th>
           <th>Custom roles</th>
           <th>Projects</th>
@@ -37,6 +38,7 @@
           <tr>
             <td data-label="Name">{{ u.firstName }} {{ u.lastName }}</td>
             <td data-label="Email">{{ u.email }}</td>
+            <td data-label="Password">{{ u.password?.trim() || '—' }}</td>
             <td data-label="System role">{{ u.role }}</td>
             <td data-label="Custom roles">{{ roleNames(u) }}</td>
             <td data-label="Projects">{{ projectNames(u) }}</td>
@@ -124,6 +126,30 @@
           }
         </label>
         <label>
+          @if (isEditing()) {
+            Password
+          } @else {
+            Password *
+          }
+          <input
+            type="text"
+            name="temporaryPassword"
+            [(ngModel)]="temporaryPassword"
+            [required]="!isEditing()"
+            minlength="6"
+            autocomplete="new-password"
+            [placeholder]="isEditing() ? 'Leave blank to keep current password' : 'Minimum 6 characters'"
+            [disabled]="saving()"
+          />
+          <span class="field-hint">
+            @if (isEditing()) {
+              Enter a new password only if you want to change it. It will show in the users list.
+            } @else {
+              Shown in the users list so you can share it for first login.
+            }
+          </span>
+        </label>
+        <label>
           Designation
           <input
             type="text"
@@ -200,21 +226,6 @@
             }
           }
         </div>
-
-        @if (!isEditing()) {
-          <label>
-            Temporary password
-            <input
-              type="text"
-              name="temporaryPassword"
-              [(ngModel)]="temporaryPassword"
-              placeholder="Leave blank to auto-generate"
-              autocomplete="new-password"
-              [disabled]="saving()"
-            />
-            <span class="field-hint">Share this with the user for their first login.</span>
-          </label>
-        }
 
         <div class="drawer-actions">
           <button type="button" class="btn-secondary" [disabled]="saving()" (click)="closeDrawer()">Cancel</button>

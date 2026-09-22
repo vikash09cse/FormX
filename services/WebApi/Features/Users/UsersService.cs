@@ -55,11 +55,16 @@ public class UsersService(
         if (await repository.EmailExistsAsync(tenantId, request.Email.Trim(), null, ct))
             return Result<TenantUserResponse>.Fail(ErrorCode.AlreadyExists, "Email is already in use.");
 
-        var password = request.TemporaryPassword ?? PasswordHelper.GenerateTemporaryPassword();
+        var password = string.IsNullOrWhiteSpace(request.TemporaryPassword)
+            ? null
+            : request.TemporaryPassword.Trim();
+        if (string.IsNullOrEmpty(password) || password.Length < 6)
+            return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Password is required (minimum 6 characters).");
+
         var designation = string.IsNullOrWhiteSpace(request.Designation) ? null : request.Designation.Trim();
         var id = await repository.CreateAsync(
             tenantId, request.Email.Trim(), request.FirstName, request.LastName, designation,
-            request.Role, PasswordHelper.Hash(password), GetUserId(), ct);
+            request.Role, PasswordHelper.Hash(password), password, GetUserId(), ct);
 
         await repository.SetRolesAsync(tenantId, id, request.RoleIds ?? [], GetUserId(), ct);
         await repository.SetScopesAsync(tenantId, id, request.ProjectScopeIds ?? [], GetUserId(), ct);
@@ -100,6 +105,17 @@ public class UsersService(
         var designation = string.IsNullOrWhiteSpace(request.Designation) ? null : request.Designation.Trim();
         await repository.UpdateAsync(
             tenantId, userId, request.FirstName.Trim(), request.LastName.Trim(), designation, request.Role, GetUserId(), ct);
+
+        if (!string.IsNullOrWhiteSpace(request.TemporaryPassword))
+        {
+            var password = request.TemporaryPassword.Trim();
+            if (password.Length < 6)
+                return Result<TenantUserResponse>.Fail(ErrorCode.Validation, "Password must be at least 6 characters.");
+
+            await repository.UpdatePasswordAsync(
+                tenantId, userId, PasswordHelper.Hash(password), password, GetUserId(), ct);
+        }
+
         await repository.SetRolesAsync(tenantId, userId, request.RoleIds ?? [], GetUserId(), ct);
         await repository.SetScopesAsync(tenantId, userId, request.ProjectScopeIds ?? [], GetUserId(), ct);
         await repository.SetDistrictScopesAsync(userId, request.DistrictScopeIds ?? [], ct);
@@ -159,5 +175,5 @@ public class UsersService(
         row.UserId, row.Email, row.FirstName, row.LastName, row.Designation,
         RoleNames.FromUserType((UserType)row.Role), row.Role,
         row.Status == (byte)UserStatus.Active ? "Active" : "Inactive", row.Status,
-        row.LastLoginAt, row.CreatedAt, roleIds, projectScopeIds, districtScopeIds);
+        row.LastLoginAt, row.CreatedAt, row.InitialPassword, roleIds, projectScopeIds, districtScopeIds);
 }

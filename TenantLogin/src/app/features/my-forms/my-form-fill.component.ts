@@ -112,7 +112,7 @@ export class MyFormFillComponent implements OnInit {
   readonly backLink = computed(() => {
     const parentId = this.parentSubmissionId();
     if (this.isFollowUp() && parentId) {
-      return ['/my-forms', this.formId(), 'entries', parentId];
+      return ['/my-forms', this.formId(), 'entries', parentId, 'followups'];
     }
     if (this.isEditing()) {
       return ['/my-forms', this.formId(), 'entries', this.submissionId()!];
@@ -125,9 +125,10 @@ export class MyFormFillComponent implements OnInit {
     }
     return this.isEditing() ? 'Edit entry' : 'Add new entry';
   });
-  readonly backLabel = computed(() =>
-    this.isFollowUp() || this.isEditing() ? '← Back to entry' : '← Back to entries'
-  );
+  readonly backLabel = computed(() => {
+    if (this.isFollowUp()) return '← Back to follow-ups';
+    return this.isEditing() ? '← Back to entry' : '← Back to entries';
+  });
 
   readonly allFields = computed(() =>
     (this.definition()?.groups ?? []).flatMap(g => g.fields)
@@ -528,7 +529,7 @@ export class MyFormFillComponent implements OnInit {
     req.subscribe({
       next: () => {
         if (this.isFollowUp() && parentId) {
-          this.router.navigate(['/my-forms', this.formId(), 'entries', parentId]);
+          this.router.navigate(['/my-forms', this.formId(), 'entries', parentId, 'followups']);
         } else if (editId) {
           this.router.navigate(['/my-forms', this.formId(), 'entries', editId]);
         } else {

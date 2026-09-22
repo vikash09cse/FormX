@@ -79,7 +79,7 @@ public class SubmissionsService(
         }).ToList();
 
         return Result<FormDefinitionResponse>.Ok(new FormDefinitionResponse(
-            form.FormId, form.Name, form.Description, form.ProjectId, form.ProjectName, form.CollectLocation, groupDtos));
+            form.FormId, form.Name, form.Description, form.ProjectId, form.ProjectName, form.CollectLocation, form.HasFollowUp, groupDtos));
     }
 
     public async Task<Result<SubmissionListPageResponse>> GetMyListAsync(

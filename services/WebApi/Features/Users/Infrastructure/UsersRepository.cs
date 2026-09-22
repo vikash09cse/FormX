@@ -16,6 +16,7 @@ public class TenantUserRow
     public byte Status { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? InitialPassword { get; set; }
     public int TotalCount { get; set; }
 }
 
@@ -55,7 +56,7 @@ public class UsersRepository(DbHelper dbHelper) : IUsersRepository
 
     public async Task<Guid> CreateAsync(
         Guid tenantId, string email, string firstName, string lastName, string? designation, byte role, string passwordHash,
-        Guid createdBy, CancellationToken ct)
+        string? initialPassword, Guid createdBy, CancellationToken ct)
     {
         using var conn = dbHelper.GetConnection();
         return await conn.ExecuteScalarAsync<Guid>(
@@ -66,6 +67,7 @@ public class UsersRepository(DbHelper dbHelper) : IUsersRepository
                 tenantid = tenantId,
                 email,
                 passwordhash = passwordHash,
+                initialpassword = initialPassword,
                 firstname = firstName,
                 lastname = lastName,
                 designation,
@@ -174,6 +176,23 @@ public class UsersRepository(DbHelper dbHelper) : IUsersRepository
         await conn.ExecuteAsync(
             "dbo.sp_user_set_district_scopes",
             new { userid = userId, districtids = string.Join(",", districtIds) },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task UpdatePasswordAsync(
+        Guid tenantId, Guid userId, string passwordHash, string? initialPassword, Guid updatedBy, CancellationToken ct)
+    {
+        using var conn = dbHelper.GetConnection();
+        await conn.ExecuteAsync(
+            "dbo.sp_update_user_password",
+            new
+            {
+                tenantid = tenantId,
+                userid = userId,
+                passwordhash = passwordHash,
+                initialpassword = initialPassword,
+                updatedby = updatedBy
+            },
             commandType: CommandType.StoredProcedure);
     }
 }
