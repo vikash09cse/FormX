@@ -14,7 +14,12 @@ BEGIN
           AND f.isdeleted = 0
           AND f.status = 1
           AND NOT EXISTS (
-              SELECT 1 FROM dbo.form_followup_configs c
+              SELECT 1
+              FROM dbo.form_followup_configs c
+              INNER JOIN dbo.forms pf
+                  ON pf.formid = c.primaryformid
+                 AND pf.tenantid = c.tenantid
+                 AND pf.isdeleted = 0
               WHERE c.tenantid = @tenantid
                 AND c.followupformid = f.formid
                 AND c.isdeleted = 0)
@@ -24,6 +29,7 @@ BEGIN
 
     SELECT DISTINCT f.formid, f.name, f.description, f.displayorder, f.collectlocation
     FROM dbo.forms f
+    INNER JOIN dbo.user_scopes us ON us.userid = @userid AND us.projectid = f.projectid
     INNER JOIN dbo.form_roles fr ON fr.formid = f.formid
     INNER JOIN dbo.user_roles ur ON ur.roleid = fr.roleid AND ur.userid = @userid
     INNER JOIN dbo.roles r ON r.roleid = ur.roleid AND r.tenantid = @tenantid AND r.isdeleted = 0 AND r.rolestatus = 1
@@ -31,7 +37,12 @@ BEGIN
       AND f.isdeleted = 0
       AND f.status = 1
       AND NOT EXISTS (
-          SELECT 1 FROM dbo.form_followup_configs c
+          SELECT 1
+          FROM dbo.form_followup_configs c
+          INNER JOIN dbo.forms pf
+              ON pf.formid = c.primaryformid
+             AND pf.tenantid = c.tenantid
+             AND pf.isdeleted = 0
           WHERE c.tenantid = @tenantid
             AND c.followupformid = f.formid
             AND c.isdeleted = 0)
