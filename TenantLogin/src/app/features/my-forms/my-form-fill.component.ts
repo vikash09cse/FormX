@@ -65,7 +65,16 @@ interface FollowupsConfigResponse {
 }
 
 /** Allowed layout tokens from field.classname (Bootstrap-style). */
-const LAYOUT_TOKENS = new Set(['col-md-6', 'col-md-12', 'col-12', 'span-2']);
+const LAYOUT_TOKENS = new Set([
+  'col-md-3',
+  'col-md-4',
+  'col-md-6',
+  'col-md-8',
+  'col-md-9',
+  'col-md-12',
+  'col-12',
+  'span-2'
+]);
 
 @Component({
   selector: 'app-my-form-fill',
@@ -223,7 +232,7 @@ export class MyFormFillComponent implements OnInit {
       .map(t => t.trim().toLowerCase())
       .filter(t => LAYOUT_TOKENS.has(t));
 
-    // Form builder "CSS class" wins whenever set (e.g. col-md-6 / col-md-12).
+    // Form builder "CSS class" wins whenever set (e.g. col-md-4 / col-md-6 / col-md-12).
     if (tokens.length > 0) {
       const normalized = tokens.map(t =>
         t === 'col-12' || t === 'span-2' ? 'col-md-12' : t
@@ -422,6 +431,60 @@ export class MyFormFillComponent implements OnInit {
 
   onFieldValueChange(fieldId: string) {
     this.clearFieldError(fieldId);
+  }
+
+  /**
+   * Digits-only / alphanumeric filters while typing.
+   * Uses type=text (not number) so maxlength works; Numeric/Phone/PIN
+   * strip non-digits and truncate to controlMaxLength.
+   */
+  onConstrainedInput(field: FormField, event: Event) {
+    const el = event.target as HTMLInputElement;
+    const next = this.sanitizeByValidation(field, el.value ?? '');
+    this.values[field.id] = next;
+    if (el.value !== next) {
+      el.value = next;
+    }
+    this.clearFieldError(field.id);
+  }
+
+  inputModeFor(field: FormField): string | null {
+    if (this.isPhoneValidation(field)) return 'tel';
+    if (this.isDigitsOnlyField(field)) return 'numeric';
+    return null;
+  }
+
+  isPhoneValidation(field: FormField): boolean {
+    const name = (field.validationRegexName ?? '').trim().toLowerCase();
+    if (name.startsWith('phone')) return true;
+    return (field.validationRegexPattern ?? '') === '^[6-9]\\d{9}$';
+  }
+
+  isDigitsOnlyField(field: FormField): boolean {
+    if (this.isPhoneValidation(field)) return true;
+    const name = (field.validationRegexName ?? '').trim().toLowerCase();
+    if (name === 'numeric' || name.startsWith('pin')) return true;
+    const pattern = field.validationRegexPattern ?? '';
+    return pattern === '^\\d+$' || pattern === '^\\d{4,10}$';
+  }
+
+  private sanitizeByValidation(field: FormField, raw: string): string {
+    if (this.isDigitsOnlyField(field)) {
+      let digits = raw.replace(/\D/g, '');
+      if (field.controlMaxLength && field.controlMaxLength > 0) {
+        digits = digits.slice(0, field.controlMaxLength);
+      }
+      return digits;
+    }
+    const name = (field.validationRegexName ?? '').trim().toLowerCase();
+    if (name === 'alphanumeric') {
+      let next = raw.replace(/[^A-Za-z0-9]/g, '');
+      if (field.controlMaxLength && field.controlMaxLength > 0) {
+        next = next.slice(0, field.controlMaxLength);
+      }
+      return next;
+    }
+    return raw;
   }
 
   private validateForm(): boolean {

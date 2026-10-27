@@ -125,11 +125,16 @@ h1 {
 
 .fields-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0.85rem 1.15rem;
   align-items: start;
 }
-.field-item.col-md-6 { grid-column: auto; }
+.field-item { grid-column: span 6; min-width: 0; }
+.field-item.col-md-3 { grid-column: span 3; }
+.field-item.col-md-4 { grid-column: span 4; }
+.field-item.col-md-6 { grid-column: span 6; }
+.field-item.col-md-8 { grid-column: span 8; }
+.field-item.col-md-9 { grid-column: span 9; }
 .field-item.col-md-12,
 .field-item.span-2,
 .field-item.col-12 { grid-column: 1 / -1; }
@@ -155,6 +160,7 @@ h1 {
 
 .fill-form select,
 .fill-form input[type='text'],
+.fill-form input[type='number'],
 .fill-form input[type='email'],
 .fill-form input[type='date'],
 .fill-form input[type='password'] {
@@ -295,7 +301,12 @@ a.btn-secondary { text-decoration: none; }
     overflow: hidden;
   }
   .fields-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+  .field-item,
+  .field-item.col-md-3,
+  .field-item.col-md-4,
   .field-item.col-md-6,
+  .field-item.col-md-8,
+  .field-item.col-md-9,
   .field-item.col-md-12,
   .field-item.span-2,
   .field-item.col-12 { grid-column: 1; }

@@ -215,11 +215,14 @@
                       @default {
                         <input
                           type="text"
-                          [(ngModel)]="values[f.id]"
                           [name]="'f' + f.id"
+                          [value]="values[f.id]"
                           [attr.maxlength]="f.controlMaxLength || null"
+                          [attr.inputmode]="inputModeFor(f)"
+                          [attr.autocomplete]="isPhoneValidation(f) ? 'tel' : null"
+                          [attr.pattern]="isDigitsOnlyField(f) ? '[0-9]*' : null"
                           [class.invalid]="fieldError(f.id)"
-                          (ngModelChange)="onFieldValueChange(f.id)"
+                          (input)="onConstrainedInput(f, $event)"
                         />
                       }
                     }
