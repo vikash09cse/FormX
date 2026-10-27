@@ -58,12 +58,20 @@
                   <td>{{ f.displayOrder }}</td>
                   <td>{{ f.parentFieldId ? 'Conditional' : '—' }}</td>
                   <td class="actions-cell">
-                    <a
-                      class="icon-btn icon-btn-edit"
-                      title="Edit field"
-                      [routerLink]="['/form-fields', f.id, 'edit']"
-                      [queryParams]="{ formId: formId() }"
-                    >✎</a>
+                    <div class="row-actions">
+                      <a
+                        class="icon-btn icon-btn-edit"
+                        title="Edit field"
+                        [routerLink]="['/form-fields', f.id, 'edit']"
+                        [queryParams]="{ formId: formId() }"
+                      >✎</a>
+                      <button
+                        type="button"
+                        class="icon-btn icon-btn-delete"
+                        title="Delete field"
+                        (click)="askDelete(f)"
+                      >🗑</button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -74,3 +82,13 @@
     </section>
   }
 }
+
+<app-confirm-dialog
+  [open]="confirmTarget() !== null"
+  title="Delete field?"
+  [message]="confirmMessage()"
+  confirmLabel="Delete"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

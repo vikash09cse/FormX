@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
 import { ApiResult } from '../../core/models/api.models';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 interface FormGroup {
   id: string;
@@ -24,7 +25,7 @@ interface FormField {
 @Component({
   selector: 'app-form-builder',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ConfirmDialogComponent],
   templateUrl: './form-builder.component.html',
   styleUrl: './form-builder.component.scss'
 })
@@ -38,6 +39,12 @@ export class FormBuilderComponent implements OnInit {
   readonly fields = signal<FormField[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly confirmTarget = signal<FormField | null>(null);
+
+  readonly confirmMessage = computed(() => {
+    const f = this.confirmTarget();
+    return f ? `Delete field "${f.controlLabel}"?` : '';
+  });
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -69,5 +76,29 @@ export class FormBuilderComponent implements OnInit {
 
   fieldsForGroup(groupId: string) {
     return this.fields().filter(f => f.formGroupId === groupId);
+  }
+
+  askDelete(item: FormField) {
+    this.confirmTarget.set(item);
+  }
+
+  cancelDelete() {
+    this.confirmTarget.set(null);
+  }
+
+  confirmDelete() {
+    const item = this.confirmTarget();
+    const formId = this.formId();
+    if (!item || !formId) return;
+    this.api.delete<ApiResult<boolean>>(`/forms/${formId}/fields/${item.id}`).subscribe({
+      next: () => {
+        this.confirmTarget.set(null);
+        this.reload();
+      },
+      error: err => {
+        this.error.set(err.error?.message ?? 'Delete failed.');
+        this.confirmTarget.set(null);
+      }
+    });
   }
 }
