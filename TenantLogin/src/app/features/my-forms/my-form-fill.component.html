@@ -108,6 +108,29 @@
               <div [class]="'field-item ' + layoutClasses(f)" [attr.data-field-key]="f.id">
                 @if (f.controlType === 7) {
                   <p class="label-only">{{ f.controlLabel }}</p>
+                } @else if (f.controlType === 6) {
+                  <div class="checkbox-single" [class.invalid-group]="fieldError(f.id)">
+                    <label class="check">
+                      <input
+                        type="checkbox"
+                        [name]="'c' + f.id"
+                        [checked]="isSingleCheckboxChecked(f)"
+                        (change)="toggleSingleCheckbox(f, $any($event.target).checked)"
+                      />
+                      <span>
+                        {{ f.controlLabel }}
+                        @if (f.controlRequired) {
+                          <span class="required" aria-hidden="true">*</span>
+                        }
+                      </span>
+                    </label>
+                    @if (f.controlNotes) {
+                      <span class="field-hint">{{ f.controlNotes }}</span>
+                    }
+                  </div>
+                  @if (fieldError(f.id); as msg) {
+                    <p class="field-error">{{ msg }}</p>
+                  }
                 } @else {
                   <label class="field-label">
                     <span class="field-label-text">
@@ -169,22 +192,6 @@
                           [class.invalid]="fieldError(f.id)"
                           (ngModelChange)="onFieldValueChange(f.id)"
                         />
-                      }
-                      @case (6) {
-                        <div class="option-list" [class.invalid-group]="fieldError(f.id)">
-                          @for (o of f.options; track o.id) {
-                            <label class="check">
-                              <input
-                                type="radio"
-                                [name]="'c' + f.id"
-                                [value]="o.optionValue"
-                                [(ngModel)]="values[f.id]"
-                                (ngModelChange)="onFieldValueChange(f.id)"
-                              />
-                              <span>{{ o.optionText }}</span>
-                            </label>
-                          }
-                        </div>
                       }
                       @case (8) {
                         <input

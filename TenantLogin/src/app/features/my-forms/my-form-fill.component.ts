@@ -395,6 +395,19 @@ export class MyFormFillComponent implements OnInit {
     return this.multiValues[fieldId]?.has(optionValue) ?? false;
   }
 
+  singleCheckboxValue(field: FormField): string {
+    return field.options[0]?.optionValue || 'Yes';
+  }
+
+  isSingleCheckboxChecked(field: FormField): boolean {
+    return !!(this.values[field.id] ?? '').trim();
+  }
+
+  toggleSingleCheckbox(field: FormField, checked: boolean) {
+    this.values[field.id] = checked ? this.singleCheckboxValue(field) : '';
+    this.clearFieldError(field.id);
+  }
+
   fieldError(key: string): string {
     return this.fieldErrors()[key] ?? '';
   }

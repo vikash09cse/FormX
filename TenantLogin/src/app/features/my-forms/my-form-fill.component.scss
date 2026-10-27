@@ -188,6 +188,14 @@ h1 {
   gap: 0.35rem;
   padding: 0.1rem 0;
 }
+.checkbox-single {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.checkbox-single .field-hint {
+  padding-left: 2.4rem;
+}
 label.check {
   display: flex !important;
   flex-direction: row !important;
